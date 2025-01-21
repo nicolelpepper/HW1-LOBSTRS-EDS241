@@ -249,6 +249,11 @@ spiny_counts |>
 
 ```{r}
 # USE: gt_summary::tbl_summary()
+
+#treat_group <- spiny_counts |> select(mean_size)
+
+spiny_counts |> tbl_summary()
+
 ```
 
 ------------------------------------------------------------------------
@@ -262,8 +267,13 @@ Step 4: OLS regression- building intuition
 ```{r}
 # NOTE: We will not evaluate/interpret model fit in this assignment (e.g., R-square)
 
-m1_ols <- 
+# linear model of treatment impact on counts
+m1_ols <- lm(
+    counts ~ treat,
+    data = spiny_counts
+)
 
+# print the model output
 summ(m1_ols, model.fit = FALSE) 
 
 ```
@@ -291,6 +301,8 @@ check_model(m1_ols, check = "homogeneity")
 check_model(m1_ols, check = "pp_check")
 ```
 
+In OLS there is an assumption of normality of residuals. In the case of the the qq plot, ideally we would like to see the points fall along the line, since we are seeing a curve it means that our data is violating the assumption of normality.
+
 ------------------------------------------------------------------------
 
 Step 5: Fitting GLMs
@@ -308,9 +320,18 @@ Step 5: Fitting GLMs
 
 #HINT2: For the second glm() argument `family` use the following specification option `family = poisson(link = "log")`
 
-m2_pois <- 
+m2_pois <- glm(
+    counts ~ treat,
+    data = spiny_counts,
+    family = poisson(link = "log")
+)
 
+summ(m2_pois, model.fit = FALSE)
+
+# transform the coefficient
+exp(0.28) - 1
 ```
+There is a 32% increase in lobster abundance at the treatment sites.
 
 **e.** Check the model assumptions. Explain results.
 
@@ -338,7 +359,12 @@ check_zeroinflation(m2_pois)
 
 # NOTE: The `glm.nb()` function does not require a `family` argument
 
-m3_nb <- 
+m3_nb <- glm.nb(
+    counts ~ treat,
+    data = spiny_counts
+)
+
+summ(m3_nb, model.fit = FALSE)
 
 ```
 
@@ -370,10 +396,9 @@ Step 6: Compare models
 
 ```{r}
 
-export_summs(# ADD MODELS
+export_summs(m1_ols, m2_pois, m3_nb,
              model.names = c("OLS","Poisson", "NB"),
              statistics = "none")
-
 ```
 
 ------------------------------------------------------------------------
@@ -394,10 +419,11 @@ Step 7: Building intuition - fixed effects
 
 
 ```{r}
-
+# create new df with `year` variable as a factor
 ff_counts <- spiny_counts %>% 
     mutate(year=as_factor(year))
     
+# run ols with updated parameters
 m5_fixedeffs <- lm(
     log(counts+1) ~ treat*year,
     data = ff_counts)

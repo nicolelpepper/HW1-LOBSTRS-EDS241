@@ -474,16 +474,24 @@ that may introduce challenges in comparing the sites.</h2>
 (<code>df</code>) <code>rawdata</code></p>
 <p><strong>b.</strong> Use the function <code>clean_names()</code> from
 the <code>janitor</code> package</p>
-<pre class="r"><code># HINT: check for coding of missing values (`na = &quot;-99999&quot;`)
-
-rawdata &lt;- </code></pre>
+<pre class="r"><code># ---- read in project data ----
+rawdata &lt;- read.csv(here::here(&quot;data&quot;,&quot;lobster_sbchannel_24.csv&quot;), 
+                    na.strings = &quot;-99999&quot;) |&gt; # set to NA
+    clean_names()</code></pre>
 <p><strong>c.</strong> Create a new <code>df</code> named
-<code>tidyata</code>. Using the variable <code>site</code> (reef
+<code>tidydata</code>. Using the variable <code>site</code> (reef
 location) create a new variable <code>reef</code> as a
 <code>factor</code> and add the following labels in the order listed
 (i.e., re-order the <code>levels</code>):</p>
-<pre><code>&quot;Arroyo Quemado&quot;, &quot;Carpenteria&quot;, &quot;Mohawk&quot;, &quot;Isla Vista&quot;,  &quot;Naples&quot;</code></pre>
-<pre class="r"><code>tidydata &lt;- </code></pre>
+<pre><code>&quot;Arroyo Quemado&quot;, &quot;Carpinteria&quot;, &quot;Mohawk&quot;, &quot;Isla Vista&quot;,  &quot;Naples&quot;</code></pre>
+<pre class="r"><code># ---- clean &amp; prep data ----
+
+# create labels for full site name and set to ordered factor
+tidydata &lt;- rawdata |&gt;
+    mutate(reef = factor( site, 
+                          levels = c(&quot;AQUE&quot;, &quot;CARP&quot;, &quot;MOHK&quot;, &quot;IVEE&quot;,  &quot;NAPL&quot;),
+                          labels = c(&quot;Arroyo Quemado&quot;, &quot;Carpinteria&quot;, &quot;Mohawk&quot;, &quot;Isla Vista&quot;,  &quot;Naples&quot;)
+    ))</code></pre>
 <p>Create new <code>df</code> named <code>spiny_counts</code></p>
 <p><strong>d.</strong> Create a new variable <code>counts</code> to
 allow for an analysis of lobster counts where the unit-level of
@@ -500,11 +508,26 @@ integers (whole numbers).</li>
 levels <code>MPA</code> and <code>non_MPA</code>. For our regression
 analysis create a numerical variable <code>treat</code> where MPA sites
 are coded <code>1</code> and non_MPA sites are coded <code>0</code></p>
-<pre class="r"><code>#HINT(d): Use `group_by()` &amp; `summarize()` to provide the total number of lobsters observed at each site-year-transect row-observation. 
+<pre class="r"><code># ---- summarise and prepare lobster data for regression analysis ----
 
-#HINT(e): Use `case_when()` to create the 3 new variable columns
-
-spiny_counts &lt;- </code></pre>
+spiny_counts &lt;- tidydata |&gt;
+    group_by(site, reef, year, transect) |&gt;
+    
+    # count lobsters observed at each site-year-transect observation &amp; mean size
+    summarize(
+        counts = n(),
+        mean_size = mean(size_mm, na.rm = TRUE)
+    ) |&gt;
+    ungroup() |&gt;
+    
+    # create variables to distinguish MPA vs non-MPA sites
+    mutate(
+        mpa = case_when(
+            site %in% c( &quot;IVEE&quot;,  &quot;NAPL&quot;) ~ &quot;MPA&quot;,
+            TRUE ~ &quot;non_MPA&quot;
+            ),
+        treat = if_else(mpa == &quot;non_MPA&quot;, 0,1)
+    )</code></pre>
 <blockquote>
 <p>NOTE: This step is crucial to the analysis. Check with a friend or
 come to TA/instructor office hours to make sure the counts are coded
@@ -515,6 +538,13 @@ correctly!</p>
 <p><strong>a.</strong> Take a look at the data! Get familiar with the
 data in each <code>df</code> format (<code>tidydata</code>,
 <code>spiny_counts</code>)</p>
+<pre class="r"><code># ---- explore data ----
+
+head(spiny_counts)
+head(tidydata)
+
+dim(spiny_counts)
+dim(tidydata)</code></pre>
 <p><strong>b.</strong> We will focus on the variables
 <code>count</code>, <code>year</code>, <code>site</code>, and
 <code>treat</code>(<code>mpa</code>) to model lobster abundance. Create
@@ -543,17 +573,57 @@ plot</a></li>
 <li>grouped by MPA status</li>
 <li>grouped by year</li>
 </ol>
+<pre class="r"><code># grouped by reef site
+spiny_counts |&gt; 
+ggplot(aes(x = counts, y = reef)) +
+  geom_violin(fill = &quot;cornflowerblue&quot;) +
+    geom_boxplot(alpha = 0) +
+    stat_summary(aes(x = counts, y = reef),
+                 fun = &quot;mean&quot;,
+                 shape = 3) + 
+    labs(title = &quot;Lobster Counts at Study Sites&quot;,
+         x = &quot;Lobster Count&quot;,
+         y = &quot;Site Name&quot;)</code></pre>
+<pre class="r"><code># grouped by year
+spiny_counts |&gt;
+ggplot(aes(x = year, y = counts, fill = mpa)) + 
+    geom_col() +
+    stat_summary(aes(y = counts),
+                 fun = &quot;mean&quot;,
+                 shape = 3) +
+    labs(title = &quot;Lobster Counts by Year&quot;,
+         x = &quot;Year&quot;,
+         y = &quot;Count&quot;)</code></pre>
+<pre class="r"><code># grouped by mpa status
+spiny_counts |&gt;
+ggplot(aes(x = counts, y = reef, color = mpa)) +
+  geom_jitter(alpha = 0.8) + </code></pre>
 <p>Create a plot of lobster <strong>size</strong> :</p>
 <ol start="4" style="list-style-type: decimal">
 <li>You choose the grouping variable(s)!</li>
 </ol>
-<pre class="r"><code># plot 1: ....
-
-spiny_counts %&gt;% 
-ggplot()</code></pre>
+<pre class="r"><code># plot of lobster size
+spiny_counts |&gt;
+    ggplot(aes(x = mean_size, fill = mpa)) +
+    geom_density(alpha = 0.8) + 
+     geom_vline(data = spiny_counts |&gt; filter(mpa == &quot;MPA&quot;), aes(xintercept = median(mean_size, na.rm = TRUE)), 
+             color = &quot;salmon&quot;, 
+             linetype = &quot;dashed&quot;, 
+             size = 1) +
+     geom_vline(data = spiny_counts |&gt; filter(mpa != &quot;MPA&quot;), aes(xintercept = median(mean_size, na.rm = TRUE)), 
+             color = &quot;turquoise&quot;, 
+             linetype = &quot;dashed&quot;, 
+             size = 1)
+    labs(title = &quot;Distribution of Lobster Size by MPA Status&quot;,
+         x = &quot;Mean Lobster Size (mm)&quot;,
+         y = &quot;Density&quot;)</code></pre>
 <p><strong>c.</strong> Compare means of the outcome by treatment group.
 Using the <code>tbl_summary()</code> function from the package <a href="https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html"><code>gt_summary</code></a></p>
-<pre class="r"><code># USE: gt_summary::tbl_summary()</code></pre>
+<pre class="r"><code># USE: gt_summary::tbl_summary()
+
+#treat_group &lt;- spiny_counts |&gt; select(mean_size)
+
+spiny_counts |&gt; tbl_summary()</code></pre>
 <hr />
 <p>Step 4: OLS regression- building intuition</p>
 <p><strong>a.</strong> Start with a simple OLS estimator of lobster
@@ -566,8 +636,13 @@ your interpretation of the regression results to be as clear as possible
 to a non-academic audience.</p>
 <pre class="r"><code># NOTE: We will not evaluate/interpret model fit in this assignment (e.g., R-square)
 
-m1_ols &lt;- 
+# linear model of treatment impact on counts
+m1_ols &lt;- lm(
+    counts ~ treat,
+    data = spiny_counts
+)
 
+# print the model output
 summ(m1_ols, model.fit = FALSE) </code></pre>
 <p><strong>c.</strong> Check the model assumptions using the
 <code>check_model</code> function from the <code>performance</code>
@@ -578,6 +653,10 @@ Why are we getting this result?</p>
 <pre class="r"><code>check_model(m1_ols, check = &quot;normality&quot;)</code></pre>
 <pre class="r"><code>check_model(m1_ols, check = &quot;homogeneity&quot;)</code></pre>
 <pre class="r"><code>check_model(m1_ols, check = &quot;pp_check&quot;)</code></pre>
+<p>In OLS there is an assumption of normality of residuals. In the case
+of the the qq plot, ideally we would like to see the points fall along
+the line, since we are seeing a curve it means that our data is
+violating the assumption of normality.</p>
 <hr />
 <p>Step 5: Fitting GLMs</p>
 <p><strong>a.</strong> Estimate a Poisson regression model using the
@@ -593,7 +672,18 @@ change in the significance of the treatment effect</p>
 
 #HINT2: For the second glm() argument `family` use the following specification option `family = poisson(link = &quot;log&quot;)`
 
-m2_pois &lt;- </code></pre>
+m2_pois &lt;- glm(
+    counts ~ treat,
+    data = spiny_counts,
+    family = poisson(link = &quot;log&quot;)
+)
+
+summ(m2_pois, model.fit = FALSE)
+
+# transform the coefficient
+exp(0.28) - 1</code></pre>
+<p>There is a 32% increase in lobster abundance at the treatment
+sites.</p>
 <p><strong>e.</strong> Check the model assumptions. Explain results.</p>
 <p><strong>f.</strong> Conduct tests for over-dispersion &amp;
 zero-inflation. Explain results.</p>
