@@ -9,6 +9,9 @@ output:
     pdf_document: default
 ---
 
+# Assignment submission: Nicole Pepper
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(eval=FALSE, warning = FALSE, message = FALSE )
 ```
@@ -77,8 +80,9 @@ Let’s break it down step by step and see what the data reveals! 📊
 
 Step 1: Anticipating potential sources of selection bias
 
-**a.** Do the control sites (Arroyo Quemado, Carpenteria, and Mohawk) provide a strong counterfactual for our treatment sites (Naples, Isla Vista)? Write a paragraph making a case for why this comparison is centris paribus or whether selection bias is likely (be specific!).  
+**a.** Do the control sites (Arroyo Quemado, Carpinteria, and Mohawk) provide a strong counterfactual for our treatment sites (Naples, Isla Vista)? Write a paragraph making a case for why this comparison is centris paribus or whether selection bias is likely (be specific!).  
 
+There are a lot of location-specific variables in marine ecosystems that can't be fully controlled for, so I think that selection bias is likely to be present not only between the control and treatment sites, but also within the treatment and control groups themselves. From what I found on [wildlife.ca](https://wildlife.ca.gov/Conservation/Marine/MPAs/Naples), the two treatment sites have different fishing regulations; while Isla Vista is a "No-Take" zone, Naples allows recreational take of some pelagic fish and for the commercial take of kelp. I imagine that the difference in fishing behavior could likely influence the broader marine ecosystem, including for lobsters, which could introduce bias within the treatment group. Additionally, the sites, though all located in the greater Santa Barbara region, are dispersed broadly across the coast and likely have different baselines in variables such as proximity to pollution, habitat disturbance, among other environmental/human factors that may introduce challenges in comparing the sites.
 ------------------------------------------------------------------------
 
 Step 2: Read & wrangle data
