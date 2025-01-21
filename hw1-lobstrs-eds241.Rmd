@@ -92,19 +92,26 @@ Step 2: Read & wrangle data
 **b.** Use the function `clean_names()` from the `janitor` package
 
 ```{r}
-# HINT: check for coding of missing values (`na = "-99999"`)
-
-rawdata <- 
+# ---- read in project data ----
+rawdata <- read.csv(here::here("data","lobster_sbchannel_24.csv"), 
+                    na.strings = "-99999") |> # set to NA
+    clean_names()
 
 ```
 
-**c.** Create a new `df` named `tidyata`. Using the variable `site` (reef location) create a new variable `reef` as a `factor` and add the following labels in the order listed (i.e., re-order the `levels`): 
+**c.** Create a new `df` named `tidydata`. Using the variable `site` (reef location) create a new variable `reef` as a `factor` and add the following labels in the order listed (i.e., re-order the `levels`): 
     
-    "Arroyo Quemado", "Carpenteria", "Mohawk", "Isla Vista",  "Naples"
+    "Arroyo Quemado", "Carpinteria", "Mohawk", "Isla Vista",  "Naples"
 
 ```{r}
+# ---- clean & prep data ----
 
-tidydata <- 
+# create labels for full site name and set to ordered factor
+tidydata <- rawdata |>
+    mutate(reef = factor( site, 
+                          levels = c("AQUE", "CARP", "MOHK", "IVEE",  "NAPL"),
+                          labels = c("Arroyo Quemado", "Carpinteria", "Mohawk", "Isla Vista",  "Naples")
+    ))
     
 ```
 
@@ -119,11 +126,27 @@ Create new `df` named `spiny_counts`
 **e.** Create a new variable `mpa` with levels `MPA` and `non_MPA`. For our regression analysis create a numerical variable `treat` where MPA sites are coded `1` and non_MPA sites are coded `0`
 
 ```{r}
-#HINT(d): Use `group_by()` & `summarize()` to provide the total number of lobsters observed at each site-year-transect row-observation. 
 
-#HINT(e): Use `case_when()` to create the 3 new variable columns
+# ---- summarise and prepare lobster data for regression analysis ----
 
-spiny_counts <- 
+spiny_counts <- tidydata |>
+    group_by(site, year, transect) |>
+    
+    # count lobsters observed at each site-year-transect observation & mean size
+    summarize(
+        counts = n(),
+        mean_size = mean(size_mm, na.rm = TRUE)
+    ) |>
+    ungroup() |>
+    
+    # create variables to distinguish MPA vs non-MPA sites
+    mutate(
+        mpa = case_when(
+            site %in% c( "IVEE",  "NAPL") ~ "MPA",
+            TRUE ~ "non_MPA"
+            ),
+        treat = if_else(mpa == "non_MPA", 0,1)
+    )
 
 ```
 
