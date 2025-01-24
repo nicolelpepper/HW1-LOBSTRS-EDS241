@@ -313,7 +313,6 @@ m1_ols <- lm(
 
 # print the model output
 summ(m1_ols, model.fit = FALSE) 
-
 ```
 
 **c.** Check the model assumptions using the `check_model` function from the `performance` package
@@ -335,7 +334,7 @@ This is another way to check the normality of the residuals. Ideally, we would s
 ```{r}
 check_model(m1_ols, check = "homogeneity")
 ```
-This plot shows the homogeneity of variance. Ideally, the reference line would be flat, which would mean that there is little variance of the residuals across the fitted values. Since we are seeing a curve it means that the variance is not constant, violating the assumption of normality.
+This plot shows the homogeneity of variance. Ideally, the reference line would be flat, which would mean that there is little variance of the residuals across the fitted values. Since we are seeing a curve it means that the variance is not constant, violating the assumption of homogeneity of variance.
 
 ```{r}
 check_model(m1_ols, check = "pp_check")
@@ -349,16 +348,12 @@ Step 5: Fitting GLMs
 
 **a.** Estimate a Poisson regression model using the `glm()` function
 
-**b.** Interpret the predictor coefficient in your own words. Use full sentences and write your interpretation of the results to be as clear as possible to a non-academic audience.
-
-**c.** Explain the statistical concept of dispersion and overdispersion in the context of this model. 
-
-**d.** Compare results with previous model, explain change in the significance of the treatment effect
-
 ```{r}
 #HINT1: Incidence Ratio Rate (IRR): Exponentiation of beta returns coefficient which is interpreted as the 'percent change' for a one unit increase in the predictor 
 
 #HINT2: For the second glm() argument `family` use the following specification option `family = poisson(link = "log")`
+
+# ---- Fit a Poisson regression model with glm ----
 
 m2_pois <- glm(
     counts ~ treat,
@@ -371,60 +366,80 @@ summ(m2_pois, model.fit = FALSE)
 # transform the coefficient
 exp(0.28) - 1
 ```
-There is a 32% increase in lobster abundance at the treatment sites.
+**b.** Interpret the predictor coefficient in your own words. Use full sentences and write your interpretation of the results to be as clear as possible to a non-academic audience.
+
+*The poisson model predicted that there is a 32% increase in lobster abundance at the treatment sites compared to the baseline.*
+
+**c.** Explain the statistical concept of dispersion and overdispersion in the context of this model. 
+*For a poisson model, there is an assumption that the mean and the variance are supposed to be equal. Dispersion describes the spread of data around the mean; and overdispersion is used to describe when the variance is greater than the mean. If there is overdispersion then the poisson model will underestimate the variability.*
+
+**d.** Compare results with previous model, explain change in the significance of the treatment effect
+
+*The poisson model predicted that there is a 32% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5.9% increase. This makes sense because the OLS model had a lot of negative residuals, which indicates that it was underestimating the predictions.*
 
 **e.** Check the model assumptions. Explain results.
+
+```{r}
+# Check the model assumptions
+check_model(m2_pois)
+```
+
+*Looking at the QQ plot, it indicates that the model violates the assumption of normality, since the residuals are distributed in an "S" curve along the quantiles, rather than following along the line. The PP check shows that in some areas the model is underestimating and others it is significantly overestimating. This model fits the assumption of homogeneity. * 
 
 **f.** Conduct tests for over-dispersion & zero-inflation. Explain results.
 
 ```{r}
-check_model(m2_pois)
-```
-
-```{r}
+# Check for overdispersion
 check_overdispersion(m2_pois)
 ```
+*There was overdispersion detected in this model which means that the variance is greater than the mean; this indicates that there could be other factors (an omitted variable) influencing count that around included in the model.*
 
 ```{r}
+# Check for zero inflation
 check_zeroinflation(m2_pois)
 ```
+*There was no observed zeros in the response variable, which means that there are other reasons, such as environmental factors, contributing to overdispersion.*
 
 **g.** Fit a negative binomial model using the function glm.nb() from the package `MASS` and check model diagnostics 
 
-**h.** In 1-2 sentences explain rationale for fitting this GLM model.
-
-**i.** Interpret the treatment estimate result in your own words. Compare with results from the previous model.
-
 ```{r}
-
-# NOTE: The `glm.nb()` function does not require a `family` argument
+# ---- Fit a negative binomial model with glm.nb ----
 
 m3_nb <- glm.nb(
     counts ~ treat,
     data = spiny_counts
 )
 
+# Summarize model
 summ(m3_nb, model.fit = FALSE)
-
 ```
 
+**h.** In 1-2 sentences explain rationale for fitting this GLM model.
+*Binomial models are good to use when data indicates overdispersion because it handles variation better than models like OLS or poisson, like in the case of our lobster count dataset, because the nb model does not have the assumption that the mean = variance.*
+
+**i.** Interpret the treatment estimate result in your own words. Compare with results from the previous model.
+
+*The negative binomial model predicted that there is a 28% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5.9% increase and the Poisson predicted a 32% increase.*
 
 ```{r}
 check_overdispersion(m3_nb)
 ```
+*There was no overdispersion detected in this model because the nb is built to handle when the variance is greater than the mean.*
 
 ```{r}
 check_zeroinflation(m3_nb)
 ```
+*There were no observed zeros in this model, which means we dont have to worry about that issue with this model.*
 
 ```{r}
 check_predictions(m3_nb)
 ```
+*The pp check shows a much better fit for this model. The model predicted intervals match closely with the observed data points, which means that the model-predicted data fits the observed data well.*
 
 ```{r}
 check_model(m3_nb)
 ```
-
+*The checks all match the ideal distributions well, which means that the predicted data and observed values fit the assumptions of the model well.*
 
 ------------------------------------------------------------------------
 
