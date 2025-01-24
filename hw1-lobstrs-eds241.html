@@ -402,7 +402,8 @@ rubric for details about presentation standards.</p></li>
 <p><strong>Assignment submission (YOUR NAME):</strong>
 ______________________________________</p>
 <hr />
-<pre class="r"><code>library(tidyverse)
+<pre class="r"><code># ---- load libraries ----
+library(tidyverse)
 library(here)
 library(janitor)
 library(estimatr)  
@@ -477,7 +478,7 @@ the <code>janitor</code> package</p>
 <pre class="r"><code># ---- read in project data ----
 rawdata &lt;- read.csv(here::here(&quot;data&quot;,&quot;lobster_sbchannel_24.csv&quot;), 
                     na.strings = &quot;-99999&quot;) |&gt; # set to NA
-    clean_names()</code></pre>
+    clean_names() # clean column names</code></pre>
 <p><strong>c.</strong> Create a new <code>df</code> named
 <code>tidydata</code>. Using the variable <code>site</code> (reef
 location) create a new variable <code>reef</code> as a
@@ -511,6 +512,8 @@ are coded <code>1</code> and non_MPA sites are coded <code>0</code></p>
 <pre class="r"><code># ---- summarise and prepare lobster data for regression analysis ----
 
 spiny_counts &lt;- tidydata |&gt;
+    
+    # group lobster data by site, reef, year, &amp; transect
     group_by(site, reef, year, transect) |&gt;
     
     # count lobsters observed at each site-year-transect observation &amp; mean size
@@ -573,31 +576,41 @@ plot</a></li>
 <li>grouped by MPA status</li>
 <li>grouped by year</li>
 </ol>
-<pre class="r"><code># grouped by reef site
+<pre class="r"><code># ---- Grouped by reef site ----
+
+# Create a violin plot of lobster counts by reef site
 spiny_counts |&gt; 
 ggplot(aes(x = counts, y = reef)) +
   geom_violin(fill = &quot;cornflowerblue&quot;) +
+    # Add box plot to display quartiles
     geom_boxplot(alpha = 0) +
+    # Add point for mean value
     stat_summary(aes(x = counts, y = reef),
                  fun = &quot;mean&quot;,
                  shape = 3) + 
     labs(title = &quot;Lobster Counts at Study Sites&quot;,
          x = &quot;Lobster Count&quot;,
          y = &quot;Site Name&quot;)</code></pre>
-<pre class="r"><code># grouped by year
+<pre class="r"><code># ---- Grouped by year ----
+
+# Create a bar chart of lobster counts by year
 spiny_counts |&gt;
 ggplot(aes(x = year, y = counts, fill = mpa)) + 
-    geom_col() +
-    stat_summary(aes(y = counts),
-                 fun = &quot;mean&quot;,
-                 shape = 3) +
-    labs(title = &quot;Lobster Counts by Year&quot;,
+    geom_col(position = &quot;dodge&quot;) +
+    stat_summary(aes(group = mpa),
+                 fun = &quot;median&quot;,
+                 shape = 3,
+                 position = position_dodge(width = 0.95)) +
+    labs(title = &quot;Lobster Counts by Year by MPA Status           + = median&quot;,
          x = &quot;Year&quot;,
-         y = &quot;Count&quot;)</code></pre>
+         y = &quot;Count&quot;) </code></pre>
 <pre class="r"><code># grouped by mpa status
 spiny_counts |&gt;
 ggplot(aes(x = counts, y = reef, color = mpa)) +
-  geom_jitter(alpha = 0.8) + </code></pre>
+  geom_jitter(alpha = 0.8) + 
+    labs(title = &quot;Lobster Counts by Site &amp; MPA Status&quot;,
+         x = &quot;Year&quot;,
+         y = &quot;Count&quot;)</code></pre>
 <p>Create a plot of lobster <strong>size</strong> :</p>
 <ol start="4" style="list-style-type: decimal">
 <li>You choose the grouping variable(s)!</li>
@@ -613,7 +626,7 @@ spiny_counts |&gt;
      geom_vline(data = spiny_counts |&gt; filter(mpa != &quot;MPA&quot;), aes(xintercept = median(mean_size, na.rm = TRUE)), 
              color = &quot;turquoise&quot;, 
              linetype = &quot;dashed&quot;, 
-             size = 1)
+             size = 1) +
     labs(title = &quot;Distribution of Lobster Size by MPA Status&quot;,
          x = &quot;Mean Lobster Size (mm)&quot;,
          y = &quot;Density&quot;)</code></pre>
@@ -656,7 +669,9 @@ Why are we getting this result?</p>
 <p>In OLS there is an assumption of normality of residuals. In the case
 of the the qq plot, ideally we would like to see the points fall along
 the line, since we are seeing a curve it means that our data is
-violating the assumption of normality.</p>
+violating the assumption of normality. Additionally, in the normality
+plot the distribution of our data does not fall along the normal
+curve.</p>
 <hr />
 <p>Step 5: Fitting GLMs</p>
 <p><strong>a.</strong> Estimate a Poisson regression model using the
@@ -699,7 +714,12 @@ this GLM model.</p>
 own words. Compare with results from the previous model.</p>
 <pre class="r"><code># NOTE: The `glm.nb()` function does not require a `family` argument
 
-m3_nb &lt;- </code></pre>
+m3_nb &lt;- glm.nb(
+    counts ~ treat,
+    data = spiny_counts
+)
+
+summ(m3_nb, model.fit = FALSE)</code></pre>
 <pre class="r"><code>check_overdispersion(m3_nb)</code></pre>
 <pre class="r"><code>check_zeroinflation(m3_nb)</code></pre>
 <pre class="r"><code>check_predictions(m3_nb)</code></pre>
@@ -712,7 +732,7 @@ you fit side-by-side.</p>
 <p><strong>c.</strong> Write a short paragraph comparing the results. Is
 the treatment effect <code>robust</code> or stable across the model
 specifications.</p>
-<pre class="r"><code>export_summs(# ADD MODELS
+<pre class="r"><code>export_summs(m1_ols, m2_pois, m3_nb,
              model.names = c(&quot;OLS&quot;,&quot;Poisson&quot;, &quot;NB&quot;),
              statistics = &quot;none&quot;)</code></pre>
 <hr />
@@ -735,9 +755,11 @@ has estimated at a conceptual level (NOTE: you do not have to interpret
 coefficients individually)</p>
 <p><strong>d.</strong> Explain why the main effect for treatment is
 negative? *Does this result make sense?</p>
-<pre class="r"><code>ff_counts &lt;- spiny_counts %&gt;% 
+<pre class="r"><code># create new df with `year` variable as a factor
+ff_counts &lt;- spiny_counts %&gt;% 
     mutate(year=as_factor(year))
     
+# run ols with updated parameters
 m5_fixedeffs &lt;- lm(
     log(counts+1) ~ treat*year,
     data = ff_counts)
@@ -764,9 +786,18 @@ variable</p>
 <pre class="r"><code># Hint 1: Group counts by `year` and `mpa` and calculate the `mean_count`
 # Hint 2: Convert variable `year` to a factor
 
-plot_counts &lt;- 
+plot_counts &lt;- spiny_counts |&gt; 
+    group_by(year, mpa) |&gt;
+    
+    summarize(
+        counts = n(),
+        mean_count = mean(counts, na.rm = TRUE)
+    ) |&gt;
+    
+    ungroup()
 
-# plot_counts %&gt;% ggplot() ...</code></pre>
+plot_counts %&gt;% ggplot(aes(x = year, y = mean_count, color = mpa)) +
+    geom_line()</code></pre>
 <hr />
 <p>Step 8: Reconsider causal identification assumptions</p>
 <ol style="list-style-type: lower-alpha">
