@@ -223,7 +223,8 @@ ggplot(aes(x = year, y = counts, fill = mpa)) +
     labs(title = "Lobster Counts by Year by MPA Status",
          subtitle = "X indicates the median count",
          x = "Year",
-         y = "Count") 
+         y = "Count",
+         fill = "MPA Status") 
 
 ```
 
@@ -248,7 +249,8 @@ ggplot(aes(x = counts, y = mpa, color = mpa)) +
     labs(title = "Lobster Counts by Site & MPA Status",
          subtitle = "+ indicates the mean count",
          x = "Year",
-         y = "Count")
+         y = "Count",
+         color = "MPA Status")
 
 ```
 
@@ -257,34 +259,39 @@ Create a plot of lobster **size** :
 4) You choose the grouping variable(s)!
 
 ```{r}
-# plot of lobster size
+# ---- Create a plot of mean lobster size ----
+
 spiny_counts |>
     ggplot(aes(x = mean_size, fill = mpa)) +
     geom_density(alpha = 0.8) + 
+    
+    # Add vertical line for median count for MPA group
      geom_vline(data = spiny_counts |> filter(mpa == "MPA"),
                 aes(xintercept = median(mean_size, na.rm = TRUE)), 
              color = "#B34640", 
              linetype = "dashed", 
              size = 1) +
-     geom_vline(data = spiny_counts |> filter(mpa != "MPA"), aes(xintercept = median(mean_size, na.rm = TRUE)), 
+    
+    # Add vertical line for non-MPA group
+    geom_vline(data = spiny_counts |> filter(mpa != "MPA"), aes(xintercept = median(mean_size, na.rm = TRUE)), 
              color = "#235959", 
              linetype = "dashed", 
              size = 1) +
+    
     labs(title = "Distribution of Lobster Size by MPA Status",
          x = "Mean Lobster Size (mm)",
-         y = "Density")
-    
+         y = "Density",
+         fill = "MPA Status") 
 ```
 
 **c.** Compare means of the outcome by treatment group. Using the `tbl_summary()` function from the package [`gt_summary`](https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html) 
 
 ```{r}
-# USE: gt_summary::tbl_summary()
-
-#treat_group <- spiny_counts |> select(mean_size)
-
-spiny_counts |> tbl_summary()
-
+# Compare means of the outcome by treatment group
+spiny_counts |> tbl_summary(
+    by = treat,
+    statistic = list(counts ~ "{mean}"),
+)
 ```
 
 ------------------------------------------------------------------------
@@ -298,7 +305,7 @@ Step 4: OLS regression- building intuition
 ```{r}
 # NOTE: We will not evaluate/interpret model fit in this assignment (e.g., R-square)
 
-# linear model of treatment impact on counts
+# define simple OLS model of treatment impact on lobster counts
 m1_ols <- lm(
     counts ~ treat,
     data = spiny_counts
@@ -314,25 +321,27 @@ summ(m1_ols, model.fit = FALSE)
 **d.** Explain the results of the 4 diagnostic plots. Why are we getting this result?
 
 ```{r}
+# 
 check_model(m1_ols,  check = "qq" )
 ```
-
+In OLS there is an assumption of normality of residuals. In the case of the the qq plot, ideally we would like to see the points fall along the line, since we are seeing a curve it means that the residuals are not normally distributed, violating the assumption of normality.
 
 ```{r}
 check_model(m1_ols, check = "normality")
 ```
 
+This is another way to check the normality of the residuals. Ideally, we would see the distribution of the residuals (shaded in blue) fall within the bounds of the normal curve. This plot shows a skewed distribution of residuals that doesn't follow the normal curve, it reinforces that the residuals are not normally distributed. Since there are more negative residuals, this could mean that the model is underestimating the values.
 
 ```{r}
 check_model(m1_ols, check = "homogeneity")
 ```
-
+This plot shows the homogeneity of variance. Ideally, the reference line would be flat, which would mean that there is little variance of the residuals across the fitted values. Since we are seeing a curve it means that the variance is not constant, violating the assumption of normality.
 
 ```{r}
 check_model(m1_ols, check = "pp_check")
 ```
 
-In OLS there is an assumption of normality of residuals. In the case of the the qq plot, ideally we would like to see the points fall along the line, since we are seeing a curve it means that our data is violating the assumption of normality. Additionally, in the normality plot the distribution of our data does not fall along the normal curve.
+The posterior predictive check shows how well the model-predicted data fits the observed data. In this case, the observed data is significantly higher than the model-predicted data, which means that the model is underestimating the predictions. This could be for a number of reasons but indicates that we should maybe choose a different model that better fits the data and/or we may need to transform the data.
 
 ------------------------------------------------------------------------
 
