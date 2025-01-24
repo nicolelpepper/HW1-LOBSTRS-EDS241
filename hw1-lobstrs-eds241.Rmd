@@ -261,12 +261,13 @@ Create a plot of lobster **size** :
 spiny_counts |>
     ggplot(aes(x = mean_size, fill = mpa)) +
     geom_density(alpha = 0.8) + 
-     geom_vline(data = spiny_counts |> filter(mpa == "MPA"), aes(xintercept = median(mean_size, na.rm = TRUE)), 
-             color = "salmon", 
+     geom_vline(data = spiny_counts |> filter(mpa == "MPA"),
+                aes(xintercept = median(mean_size, na.rm = TRUE)), 
+             color = "#B34640", 
              linetype = "dashed", 
              size = 1) +
      geom_vline(data = spiny_counts |> filter(mpa != "MPA"), aes(xintercept = median(mean_size, na.rm = TRUE)), 
-             color = "turquoise", 
+             color = "#235959", 
              linetype = "dashed", 
              size = 1) +
     labs(title = "Distribution of Lobster Size by MPA Status",
