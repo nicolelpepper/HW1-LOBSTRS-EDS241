@@ -303,15 +303,13 @@ Step 4: OLS regression- building intuition
 **b.** Interpret the intercept & predictor coefficients *in your own words*. Use full sentences and write your interpretation of the regression results to be as clear as possible to a non-academic audience.
 
 ```{r}
-# NOTE: We will not evaluate/interpret model fit in this assignment (e.g., R-square)
-
-# define simple OLS model of treatment impact on lobster counts
+# Define simple OLS model of treatment impact on lobster counts
 m1_ols <- lm(
     counts ~ treat,
     data = spiny_counts
 )
 
-# print the model output
+# Print the model output
 summ(m1_ols, model.fit = FALSE) 
 ```
 
@@ -320,23 +318,26 @@ summ(m1_ols, model.fit = FALSE)
 **d.** Explain the results of the 4 diagnostic plots. Why are we getting this result?
 
 ```{r}
-# 
+# Check model
 check_model(m1_ols,  check = "qq" )
 ```
 In OLS there is an assumption of normality of residuals. In the case of the the qq plot, ideally we would like to see the points fall along the line, since we are seeing a curve it means that the residuals are not normally distributed, violating the assumption of normality.
 
 ```{r}
+# Check normality
 check_model(m1_ols, check = "normality")
 ```
 
 This is another way to check the normality of the residuals. Ideally, we would see the distribution of the residuals (shaded in blue) fall within the bounds of the normal curve. This plot shows a skewed distribution of residuals that doesn't follow the normal curve, it reinforces that the residuals are not normally distributed. Since there are more negative residuals, this could mean that the model is underestimating the values.
 
 ```{r}
+# Check homogeneity
 check_model(m1_ols, check = "homogeneity")
 ```
 This plot shows the homogeneity of variance. Ideally, the reference line would be flat, which would mean that there is little variance of the residuals across the fitted values. Since we are seeing a curve it means that the variance is not constant, violating the assumption of homogeneity of variance.
 
 ```{r}
+# Check pp check
 check_model(m1_ols, check = "pp_check")
 ```
 
@@ -349,10 +350,6 @@ Step 5: Fitting GLMs
 **a.** Estimate a Poisson regression model using the `glm()` function
 
 ```{r}
-#HINT1: Incidence Ratio Rate (IRR): Exponentiation of beta returns coefficient which is interpreted as the 'percent change' for a one unit increase in the predictor 
-
-#HINT2: For the second glm() argument `family` use the following specification option `family = poisson(link = "log")`
-
 # ---- Fit a Poisson regression model with glm ----
 
 m2_pois <- glm(
@@ -361,9 +358,10 @@ m2_pois <- glm(
     family = poisson(link = "log")
 )
 
+# Summarize model
 summ(m2_pois, model.fit = FALSE)
 
-# transform the coefficient
+# Transform the coefficient for IRR to get percent change
 exp(0.28) - 1
 ```
 **b.** Interpret the predictor coefficient in your own words. Use full sentences and write your interpretation of the results to be as clear as possible to a non-academic audience.
@@ -412,6 +410,10 @@ m3_nb <- glm.nb(
 
 # Summarize model
 summ(m3_nb, model.fit = FALSE)
+
+# transform the coefficient
+exp(0.28) - 1
+
 ```
 
 **h.** In 1-2 sentences explain rationale for fitting this GLM model.
@@ -419,24 +421,28 @@ summ(m3_nb, model.fit = FALSE)
 
 **i.** Interpret the treatment estimate result in your own words. Compare with results from the previous model.
 
-*The negative binomial model predicted that there is a 28% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5.9% increase and the Poisson predicted a 32% increase.*
+*The negative binomial model predicted that there is a 28% increase in lobster abundance at the treatment sites which is the same as what the poisson model predicted, while the simple OLS model only estimated a 5.9% increase.*
 
 ```{r}
+# Check for overdispersion
 check_overdispersion(m3_nb)
 ```
 *There was no overdispersion detected in this model because the nb is built to handle when the variance is greater than the mean.*
 
 ```{r}
+# Check for zero inflation
 check_zeroinflation(m3_nb)
 ```
 *There were no observed zeros in this model, which means we dont have to worry about that issue with this model.*
 
 ```{r}
+# Check posterior predictions
 check_predictions(m3_nb)
 ```
 *The pp check shows a much better fit for this model. The model predicted intervals match closely with the observed data points, which means that the model-predicted data fits the observed data well.*
 
 ```{r}
+# Check model assumptions
 check_model(m3_nb)
 ```
 *The checks all match the ideal distributions well, which means that the predicted data and observed values fit the assumptions of the model well.*
@@ -447,14 +453,16 @@ Step 6: Compare models
 
 **a.** Use the `export_summ()` function from the `jtools` package to look at the three regression models you fit side-by-side.
 
-**c.** Write a short paragraph comparing the results. Is the treatment effect `robust` or stable across the model specifications. 
-
 ```{r}
-
+# Create a table comparing model results
 export_summs(m1_ols, m2_pois, m3_nb,
              model.names = c("OLS","Poisson", "NB"),
              statistics = "none")
 ```
+
+**c.** Write a short paragraph comparing the results. Is the treatment effect `robust` or stable across the model specifications. 
+
+*For all three models, there was a consistent and statistically significant positive treatment affect. Both the negative binomial model and the poisson model predicted that there is a 28% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5.9% increase. The poisson and negative binomial models performed similarly, despite the presence of overdispersion in the poisson model, which indicates that the positive treatment effect is robust.*
 
 ------------------------------------------------------------------------
 
@@ -472,33 +480,43 @@ Step 7: Building intuition - fixed effects
 
 **d.** Explain why the main effect for treatment is negative? *Does this result make sense?
 
-
 ```{r}
-# create new df with `year` variable as a factor
-ff_counts <- spiny_counts %>% 
+# ---- Try again using 'year' as a factor ----
+
+# Create new df with `year` variable as a factor
+ff_counts <- spiny_counts |> 
     mutate(year=as_factor(year))
     
-# run ols with updated parameters
+# Run ols with updated parameters
 m5_fixedeffs <- lm(
     log(counts+1) ~ treat*year,
     data = ff_counts)
 
+# Check model summary
 summ(m5_fixedeffs, model.fit = FALSE)
 ```
 
 **e.** Look at the model predictions: Use the `interact_plot()` function from package `interactions` to plot mean predictions by year and treatment status. 
 
-**f.** Re-evaluate your responses (c) and (b) above. 
-
 ```{r}
 
-# Hint 1: Group counts by `year` and `mpa` and calculate the `mean_count`
-# Hint 2: Convert variable `year` to a factor
+# ---- Check out model predictions ----
 
+ff_counts <- ff_counts |>
+    group_by(year, mpa) |>
+                 # group by year and mpa to calculate mean_count
+                 summarise(mean_count = mean(counts, na.rm = TRUE)) |>
+                 # convert year to factor
+                 mutate(year = as.factor(year)) |>
+     ungroup()
+
+# Use interact_plot to plot mean predictions by year and treatment site
 interact_plot(m5_fixedeffs, pred = year, modx = treat,
               outcome.scale = "response")
 
 ```
+
+**f.** Re-evaluate your responses (c) and (b) above. 
 
 **g.** Using `ggplot()` create a plot in same style as the previous `interaction plot`, but displaying the original scale of the outcome variable (lobster counts). This type of plot is commonly used to show how the treatment effect changes across discrete time points (i.e., panel data).
 
@@ -522,7 +540,7 @@ plot_counts <- spiny_counts |>
     
     ungroup()
 
-plot_counts %>% ggplot(aes(x = year, y = mean_count, color = mpa)) +
+plot_counts |> ggplot(aes(x = year, y = mean_count, color = mpa)) +
     geom_line()
 
 ```
