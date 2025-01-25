@@ -589,6 +589,7 @@ ggplot(aes(x = counts, y = reef)) +
                  fun = &quot;mean&quot;,
                  shape = 3) + 
     labs(title = &quot;Lobster Counts at Study Sites&quot;,
+         subtitle = &quot;+ indicates the mean count&quot;,
          x = &quot;Lobster Count&quot;,
          y = &quot;Site Name&quot;)</code></pre>
 <pre class="r"><code># ---- Grouped by year ----
@@ -597,46 +598,72 @@ ggplot(aes(x = counts, y = reef)) +
 spiny_counts |&gt;
 ggplot(aes(x = year, y = counts, fill = mpa)) + 
     geom_col(position = &quot;dodge&quot;) +
+    
+    # Add point for median
     stat_summary(aes(group = mpa),
                  fun = &quot;median&quot;,
-                 shape = 3,
+                 shape = 4,
                  position = position_dodge(width = 0.95)) +
-    labs(title = &quot;Lobster Counts by Year by MPA Status           + = median&quot;,
+    labs(title = &quot;Lobster Counts by Year by MPA Status&quot;,
+         subtitle = &quot;X indicates the median count&quot;,
          x = &quot;Year&quot;,
-         y = &quot;Count&quot;) </code></pre>
-<pre class="r"><code># grouped by mpa status
+         y = &quot;Count&quot;,
+         fill = &quot;MPA Status&quot;) </code></pre>
+<pre class="r"><code># ---- Grouped by mpa status ----
+
+# Create a jitter plot of counts by reef, grouped by mpa status
 spiny_counts |&gt;
-ggplot(aes(x = counts, y = reef, color = mpa)) +
-  geom_jitter(alpha = 0.8) + 
+ggplot(aes(x = counts, y = mpa, color = mpa)) +
+  geom_jitter(alpha = 0.5) + 
+    
+    #add boxplot to display quartiles
+    geom_boxplot(alpha = 0, color = &quot;black&quot;, size = .65) +
+    
+    # Add point for median value
+    stat_summary(aes(x = counts, y = mpa),
+                 fun = &quot;mean&quot;,
+                 shape = 3,
+                 color = &quot;black&quot;) +
+    
     labs(title = &quot;Lobster Counts by Site &amp; MPA Status&quot;,
+         subtitle = &quot;+ indicates the mean count&quot;,
          x = &quot;Year&quot;,
-         y = &quot;Count&quot;)</code></pre>
+         y = &quot;Count&quot;,
+         color = &quot;MPA Status&quot;)</code></pre>
 <p>Create a plot of lobster <strong>size</strong> :</p>
 <ol start="4" style="list-style-type: decimal">
 <li>You choose the grouping variable(s)!</li>
 </ol>
-<pre class="r"><code># plot of lobster size
+<pre class="r"><code># ---- Create a plot of mean lobster size ----
+
 spiny_counts |&gt;
     ggplot(aes(x = mean_size, fill = mpa)) +
     geom_density(alpha = 0.8) + 
-     geom_vline(data = spiny_counts |&gt; filter(mpa == &quot;MPA&quot;), aes(xintercept = median(mean_size, na.rm = TRUE)), 
-             color = &quot;salmon&quot;, 
+    
+    # Add vertical line for median count for MPA group
+     geom_vline(data = spiny_counts |&gt; filter(mpa == &quot;MPA&quot;),
+                aes(xintercept = median(mean_size, na.rm = TRUE)), 
+             color = &quot;#B34640&quot;, 
              linetype = &quot;dashed&quot;, 
              size = 1) +
-     geom_vline(data = spiny_counts |&gt; filter(mpa != &quot;MPA&quot;), aes(xintercept = median(mean_size, na.rm = TRUE)), 
-             color = &quot;turquoise&quot;, 
+    
+    # Add vertical line for non-MPA group
+    geom_vline(data = spiny_counts |&gt; filter(mpa != &quot;MPA&quot;), aes(xintercept = median(mean_size, na.rm = TRUE)), 
+             color = &quot;#235959&quot;, 
              linetype = &quot;dashed&quot;, 
              size = 1) +
+    
     labs(title = &quot;Distribution of Lobster Size by MPA Status&quot;,
          x = &quot;Mean Lobster Size (mm)&quot;,
-         y = &quot;Density&quot;)</code></pre>
+         y = &quot;Density&quot;,
+         fill = &quot;MPA Status&quot;) </code></pre>
 <p><strong>c.</strong> Compare means of the outcome by treatment group.
 Using the <code>tbl_summary()</code> function from the package <a href="https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html"><code>gt_summary</code></a></p>
-<pre class="r"><code># USE: gt_summary::tbl_summary()
-
-#treat_group &lt;- spiny_counts |&gt; select(mean_size)
-
-spiny_counts |&gt; tbl_summary()</code></pre>
+<pre class="r"><code># Compare means of the outcome by treatment group
+spiny_counts |&gt; tbl_summary(
+    by = treat,
+    statistic = list(counts ~ &quot;{mean}&quot;),
+)</code></pre>
 <hr />
 <p>Step 4: OLS regression- building intuition</p>
 <p><strong>a.</strong> Start with a simple OLS estimator of lobster
@@ -647,45 +674,54 @@ package to print the OLS output</p>
 coefficients <em>in your own words</em>. Use full sentences and write
 your interpretation of the regression results to be as clear as possible
 to a non-academic audience.</p>
-<pre class="r"><code># NOTE: We will not evaluate/interpret model fit in this assignment (e.g., R-square)
-
-# linear model of treatment impact on counts
+<pre class="r"><code># Define simple OLS model of treatment impact on lobster counts
 m1_ols &lt;- lm(
     counts ~ treat,
     data = spiny_counts
 )
 
-# print the model output
+# Print the model output
 summ(m1_ols, model.fit = FALSE) </code></pre>
 <p><strong>c.</strong> Check the model assumptions using the
 <code>check_model</code> function from the <code>performance</code>
 package</p>
 <p><strong>d.</strong> Explain the results of the 4 diagnostic plots.
 Why are we getting this result?</p>
-<pre class="r"><code>check_model(m1_ols,  check = &quot;qq&quot; )</code></pre>
-<pre class="r"><code>check_model(m1_ols, check = &quot;normality&quot;)</code></pre>
-<pre class="r"><code>check_model(m1_ols, check = &quot;homogeneity&quot;)</code></pre>
-<pre class="r"><code>check_model(m1_ols, check = &quot;pp_check&quot;)</code></pre>
+<pre class="r"><code># Check model
+check_model(m1_ols,  check = &quot;qq&quot; )</code></pre>
 <p>In OLS there is an assumption of normality of residuals. In the case
 of the the qq plot, ideally we would like to see the points fall along
-the line, since we are seeing a curve it means that our data is
-violating the assumption of normality. Additionally, in the normality
-plot the distribution of our data does not fall along the normal
-curve.</p>
+the line, since we are seeing a curve it means that the residuals are
+not normally distributed, violating the assumption of normality.</p>
+<pre class="r"><code># Check normality
+check_model(m1_ols, check = &quot;normality&quot;)</code></pre>
+<p>This is another way to check the normality of the residuals. Ideally,
+we would see the distribution of the residuals (shaded in blue) fall
+within the bounds of the normal curve. This plot shows a skewed
+distribution of residuals that doesn’t follow the normal curve, it
+reinforces that the residuals are not normally distributed. Since there
+are more negative residuals, this could mean that the model is
+underestimating the values.</p>
+<pre class="r"><code># Check homogeneity
+check_model(m1_ols, check = &quot;homogeneity&quot;)</code></pre>
+<p>This plot shows the homogeneity of variance. Ideally, the reference
+line would be flat, which would mean that there is little variance of
+the residuals across the fitted values. Since we are seeing a curve it
+means that the variance is not constant, violating the assumption of
+homogeneity of variance.</p>
+<pre class="r"><code># Check pp check
+check_model(m1_ols, check = &quot;pp_check&quot;)</code></pre>
+<p>The posterior predictive check shows how well the model-predicted
+data fits the observed data. In this case, the observed data is
+significantly higher than the model-predicted data, which means that the
+model is underestimating the predictions. This could be for a number of
+reasons but indicates that we should maybe choose a different model that
+better fits the data and/or we may need to transform the data.</p>
 <hr />
 <p>Step 5: Fitting GLMs</p>
 <p><strong>a.</strong> Estimate a Poisson regression model using the
 <code>glm()</code> function</p>
-<p><strong>b.</strong> Interpret the predictor coefficient in your own
-words. Use full sentences and write your interpretation of the results
-to be as clear as possible to a non-academic audience.</p>
-<p><strong>c.</strong> Explain the statistical concept of dispersion and
-overdispersion in the context of this model.</p>
-<p><strong>d.</strong> Compare results with previous model, explain
-change in the significance of the treatment effect</p>
-<pre class="r"><code>#HINT1: Incidence Ratio Rate (IRR): Exponentiation of beta returns coefficient which is interpreted as the &#39;percent change&#39; for a one unit increase in the predictor 
-
-#HINT2: For the second glm() argument `family` use the following specification option `family = poisson(link = &quot;log&quot;)`
+<pre class="r"><code># ---- Fit a Poisson regression model with glm ----
 
 m2_pois &lt;- glm(
     counts ~ treat,
@@ -693,48 +729,118 @@ m2_pois &lt;- glm(
     family = poisson(link = &quot;log&quot;)
 )
 
+# Summarize model
 summ(m2_pois, model.fit = FALSE)
 
-# transform the coefficient
+# Transform the coefficient for IRR to get percent change
 exp(0.28) - 1</code></pre>
-<p>There is a 32% increase in lobster abundance at the treatment
-sites.</p>
+<p><strong>b.</strong> Interpret the predictor coefficient in your own
+words. Use full sentences and write your interpretation of the results
+to be as clear as possible to a non-academic audience.</p>
+<p><em>The poisson model predicted that there is a 32% increase in
+lobster abundance at the treatment sites compared to the
+baseline.</em></p>
+<p><strong>c.</strong> Explain the statistical concept of dispersion and
+overdispersion in the context of this model. <em>For a poisson model,
+there is an assumption that the mean and the variance are supposed to be
+equal. Dispersion describes the spread of data around the mean; and
+overdispersion is used to describe when the variance is greater than the
+mean. If there is overdispersion then the poisson model will
+underestimate the variability.</em></p>
+<p><strong>d.</strong> Compare results with previous model, explain
+change in the significance of the treatment effect</p>
+<p><em>The poisson model predicted that there is a 32% increase in
+lobster abundance at the treatment sites, while the simple OLS model
+only estimated a 5.9% increase. This makes sense because the OLS model
+had a lot of negative residuals, which indicates that it was
+underestimating the predictions.</em></p>
 <p><strong>e.</strong> Check the model assumptions. Explain results.</p>
+<pre class="r"><code># Check the model assumptions
+check_model(m2_pois)</code></pre>
+<p><em>Looking at the QQ plot, it indicates that the model violates the
+assumption of normality, since the residuals are distributed in an “S”
+curve along the quantiles, rather than following along the line. The PP
+check shows that in some areas the model is underestimating and others
+it is significantly overestimating. This model fits the assumption of
+homogeneity. </em></p>
 <p><strong>f.</strong> Conduct tests for over-dispersion &amp;
 zero-inflation. Explain results.</p>
-<pre class="r"><code>check_model(m2_pois)</code></pre>
-<pre class="r"><code>check_overdispersion(m2_pois)</code></pre>
-<pre class="r"><code>check_zeroinflation(m2_pois)</code></pre>
+<pre class="r"><code># Check for overdispersion
+check_overdispersion(m2_pois)</code></pre>
+<p><em>There was overdispersion detected in this model which means that
+the variance is greater than the mean; this indicates that there could
+be other factors (an omitted variable) influencing count that around
+included in the model.</em></p>
+<pre class="r"><code># Check for zero inflation
+check_zeroinflation(m2_pois)</code></pre>
+<p><em>There was no observed zeros in the response variable, which means
+that there are other reasons, such as environmental factors,
+contributing to overdispersion.</em></p>
 <p><strong>g.</strong> Fit a negative binomial model using the function
 glm.nb() from the package <code>MASS</code> and check model
 diagnostics</p>
-<p><strong>h.</strong> In 1-2 sentences explain rationale for fitting
-this GLM model.</p>
-<p><strong>i.</strong> Interpret the treatment estimate result in your
-own words. Compare with results from the previous model.</p>
-<pre class="r"><code># NOTE: The `glm.nb()` function does not require a `family` argument
+<pre class="r"><code># ---- Fit a negative binomial model with glm.nb ----
 
 m3_nb &lt;- glm.nb(
     counts ~ treat,
     data = spiny_counts
 )
 
-summ(m3_nb, model.fit = FALSE)</code></pre>
-<pre class="r"><code>check_overdispersion(m3_nb)</code></pre>
-<pre class="r"><code>check_zeroinflation(m3_nb)</code></pre>
-<pre class="r"><code>check_predictions(m3_nb)</code></pre>
-<pre class="r"><code>check_model(m3_nb)</code></pre>
+# Summarize model
+summ(m3_nb, model.fit = FALSE)
+
+# transform the coefficient
+exp(0.28) - 1</code></pre>
+<p><strong>h.</strong> In 1-2 sentences explain rationale for fitting
+this GLM model. <em>Binomial models are good to use when data indicates
+overdispersion because it handles variation better than models like OLS
+or poisson, like in the case of our lobster count dataset, because the
+nb model does not have the assumption that the mean = variance.</em></p>
+<p><strong>i.</strong> Interpret the treatment estimate result in your
+own words. Compare with results from the previous model.</p>
+<p><em>The negative binomial model predicted that there is a 28%
+increase in lobster abundance at the treatment sites which is the same
+as what the poisson model predicted, while the simple OLS model only
+estimated a 5.9% increase.</em></p>
+<pre class="r"><code># Check for overdispersion
+check_overdispersion(m3_nb)</code></pre>
+<p><em>There was no overdispersion detected in this model because the nb
+is built to handle when the variance is greater than the mean.</em></p>
+<pre class="r"><code># Check for zero inflation
+check_zeroinflation(m3_nb)</code></pre>
+<p><em>There were no observed zeros in this model, which means we dont
+have to worry about that issue with this model.</em></p>
+<pre class="r"><code># Check posterior predictions
+check_predictions(m3_nb)</code></pre>
+<p><em>The pp check shows a much better fit for this model. The model
+predicted intervals match closely with the observed data points, which
+means that the model-predicted data fits the observed data
+well.</em></p>
+<pre class="r"><code># Check model assumptions
+check_model(m3_nb)</code></pre>
+<p><em>The checks all match the ideal distributions well, which means
+that the predicted data and observed values fit the assumptions of the
+model well.</em></p>
 <hr />
 <p>Step 6: Compare models</p>
 <p><strong>a.</strong> Use the <code>export_summ()</code> function from
 the <code>jtools</code> package to look at the three regression models
 you fit side-by-side.</p>
+<pre class="r"><code># Create a table comparing model results
+export_summs(m1_ols, m2_pois, m3_nb,
+             model.names = c(&quot;OLS&quot;,&quot;Poisson&quot;, &quot;NB&quot;),
+             statistics = &quot;none&quot;)</code></pre>
 <p><strong>c.</strong> Write a short paragraph comparing the results. Is
 the treatment effect <code>robust</code> or stable across the model
 specifications.</p>
-<pre class="r"><code>export_summs(m1_ols, m2_pois, m3_nb,
-             model.names = c(&quot;OLS&quot;,&quot;Poisson&quot;, &quot;NB&quot;),
-             statistics = &quot;none&quot;)</code></pre>
+<p><em>For all three models, there was a consistent and statistically
+significant positive treatment affect. Both the negative binomial model
+and the poisson model predicted that there is a 28% increase in lobster
+abundance at the treatment sites, while the simple OLS model only
+estimated a 5.9% increase. The poisson and negative binomial models
+performed similarly, despite the presence of overdispersion in the
+poisson model, which indicates that the positive treatment effect is
+robust.</em></p>
 <hr />
 <p>Step 7: Building intuition - fixed effects</p>
 <p><strong>a.</strong> Create new <code>df</code> with the
@@ -755,26 +861,37 @@ has estimated at a conceptual level (NOTE: you do not have to interpret
 coefficients individually)</p>
 <p><strong>d.</strong> Explain why the main effect for treatment is
 negative? *Does this result make sense?</p>
-<pre class="r"><code># create new df with `year` variable as a factor
-ff_counts &lt;- spiny_counts %&gt;% 
+<pre class="r"><code># ---- Try again using &#39;year&#39; as a factor ----
+
+# Create new df with `year` variable as a factor
+ff_counts &lt;- spiny_counts |&gt; 
     mutate(year=as_factor(year))
     
-# run ols with updated parameters
+# Run ols with updated parameters
 m5_fixedeffs &lt;- lm(
     log(counts+1) ~ treat*year,
     data = ff_counts)
 
+# Check model summary
 summ(m5_fixedeffs, model.fit = FALSE)</code></pre>
 <p><strong>e.</strong> Look at the model predictions: Use the
 <code>interact_plot()</code> function from package
 <code>interactions</code> to plot mean predictions by year and treatment
 status.</p>
-<p><strong>f.</strong> Re-evaluate your responses (c) and (b) above.</p>
-<pre class="r"><code># Hint 1: Group counts by `year` and `mpa` and calculate the `mean_count`
-# Hint 2: Convert variable `year` to a factor
+<pre class="r"><code># ---- Check out model predictions ----
 
+ff_counts &lt;- ff_counts |&gt;
+    group_by(year, mpa) |&gt;
+                 # group by year and mpa to calculate mean_count
+                 summarise(mean_count = mean(counts, na.rm = TRUE)) |&gt;
+                 # convert year to factor
+                 mutate(year = as.factor(year)) |&gt;
+     ungroup()
+
+# Use interact_plot to plot mean predictions by year and treatment site
 interact_plot(m5_fixedeffs, pred = year, modx = treat,
               outcome.scale = &quot;response&quot;)</code></pre>
+<p><strong>f.</strong> Re-evaluate your responses (c) and (b) above.</p>
 <p><strong>g.</strong> Using <code>ggplot()</code> create a plot in same
 style as the previous <code>interaction plot</code>, but displaying the
 original scale of the outcome variable (lobster counts). This type of
@@ -796,7 +913,7 @@ plot_counts &lt;- spiny_counts |&gt;
     
     ungroup()
 
-plot_counts %&gt;% ggplot(aes(x = year, y = mean_count, color = mpa)) +
+plot_counts |&gt; ggplot(aes(x = year, y = mean_count, color = mpa)) +
     geom_line()</code></pre>
 <hr />
 <p>Step 8: Reconsider causal identification assumptions</p>

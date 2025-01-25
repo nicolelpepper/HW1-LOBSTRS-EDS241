@@ -96,7 +96,7 @@ Step 2: Read & wrangle data
 
 ```{r}
 # ---- read in project data ----
-rawdata <- read.csv(here::here("data","lobster_sbchannel_24.csv"), 
+rawdata <- read.csv(here::here("data","spiny_abundance_sb_18.csv"), 
                     na.strings = "-99999") |> # set to NA
     clean_names() # clean column names
 ```
@@ -134,7 +134,7 @@ Create new `df` named `spiny_counts`
 spiny_counts <- tidydata |>
     
     # group lobster data by site, reef, year, & transect
-    group_by(site, reef, year, transect) |>
+    group_by(site, year, transect) |>
     
     # count lobsters observed at each site-year-transect observation & mean size
     summarize(
@@ -193,12 +193,12 @@ Create plots displaying the distribution of lobster **counts**:
 
 # Create a violin plot of lobster counts by reef site
 spiny_counts |> 
-ggplot(aes(x = counts, y = reef)) +
+ggplot(aes(x = counts, y = site)) +
   geom_violin(fill = "cornflowerblue") +
     # Add box plot to display quartiles
     geom_boxplot(alpha = 0) +
     # Add point for mean value
-    stat_summary(aes(x = counts, y = reef),
+    stat_summary(aes(x = counts, y = site),
                  fun = "mean",
                  shape = 3) + 
     labs(title = "Lobster Counts at Study Sites",
@@ -312,15 +312,14 @@ m1_ols <- lm(
 # Print the model output
 summ(m1_ols, model.fit = FALSE) 
 ```
-
+*The simple OLS model predicted that there is a 5% increase in lobster abundance at the treatment sites compared to the baseline.*
 **c.** Check the model assumptions using the `check_model` function from the `performance` package
-
-**d.** Explain the results of the 4 diagnostic plots. Why are we getting this result?
-
 ```{r}
 # Check model
 check_model(m1_ols,  check = "qq" )
 ```
+**d.** Explain the results of the 4 diagnostic plots. Why are we getting this result?
+
 In OLS there is an assumption of normality of residuals. In the case of the the qq plot, ideally we would like to see the points fall along the line, since we are seeing a curve it means that the residuals are not normally distributed, violating the assumption of normality.
 
 ```{r}
@@ -373,7 +372,7 @@ exp(0.28) - 1
 
 **d.** Compare results with previous model, explain change in the significance of the treatment effect
 
-*The poisson model predicted that there is a 32% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5.9% increase. This makes sense because the OLS model had a lot of negative residuals, which indicates that it was underestimating the predictions.*
+*The poisson model predicted that there is a 32% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5% increase. This makes sense because the OLS model had a lot of negative residuals, which indicates that it was underestimating the predictions.*
 
 **e.** Check the model assumptions. Explain results.
 
@@ -421,13 +420,13 @@ exp(0.28) - 1
 
 **i.** Interpret the treatment estimate result in your own words. Compare with results from the previous model.
 
-*The negative binomial model predicted that there is a 28% increase in lobster abundance at the treatment sites which is the same as what the poisson model predicted, while the simple OLS model only estimated a 5.9% increase.*
+*The negative binomial model predicted that there is a 32% increase in lobster abundance at the treatment sites which is the same as what the poisson model predicted, while the simple OLS model only estimated a 5.9% increase.*
 
 ```{r}
 # Check for overdispersion
 check_overdispersion(m3_nb)
 ```
-*There was no overdispersion detected in this model because the nb is built to handle when the variance is greater than the mean.*
+*There is overdispersion detected in this model, because of the variance.*
 
 ```{r}
 # Check for zero inflation
@@ -462,7 +461,7 @@ export_summs(m1_ols, m2_pois, m3_nb,
 
 **c.** Write a short paragraph comparing the results. Is the treatment effect `robust` or stable across the model specifications. 
 
-*For all three models, there was a consistent and statistically significant positive treatment affect. Both the negative binomial model and the poisson model predicted that there is a 28% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5.9% increase. The poisson and negative binomial models performed similarly, despite the presence of overdispersion in the poisson model, which indicates that the positive treatment effect is robust.*
+*For all three models, there was a consistent and statistically significant positive treatment affect. Both the negative binomial model and the poisson model predicted that there is a 32% increase in lobster abundance at the treatment sites, while the simple OLS model only estimated a 5% increase. The poisson and negative binomial models performed similarly, despite the presence of overdispersion, which indicates that the positive treatment effect is robust.*
 
 ------------------------------------------------------------------------
 
@@ -476,47 +475,46 @@ Step 7: Building intuition - fixed effects
 - Estimate fixed effects for `year`
 - Include an interaction term between variables `treat` and `year`
 
-**c.** Take a look at the regression output. Each coefficient provides a comparison or the difference in means for a specific sub-group in the data. Informally, describe the what the model has estimated at a conceptual level (NOTE: you do not have to interpret coefficients individually)
-
-**d.** Explain why the main effect for treatment is negative? *Does this result make sense?
 
 ```{r}
 # ---- Try again using 'year' as a factor ----
 
-# Create new df with `year` variable as a factor
-ff_counts <- spiny_counts |> 
-    mutate(year=as_factor(year))
-    
+f_counts <- spiny_counts |> 
+    mutate(year = as_factor(year))
+
 # Run ols with updated parameters
 m5_fixedeffs <- lm(
     log(counts+1) ~ treat*year,
-    data = ff_counts)
+    data = f_counts)
 
+```
+
+
+**c.** Take a look at the regression output. Each coefficient provides a comparison or the difference in means for a specific sub-group in the data. Informally, describe the what the model has estimated at a conceptual level (NOTE: you do not have to interpret coefficients individually)
+
+
+```{r}
 # Check model summary
 summ(m5_fixedeffs, model.fit = FALSE)
 ```
+*This model is predicting how the effect of treatment on lobster counts varies by year. For most years, treatment had a positive effect on lobster abundance however. However, the "main effect" is negative.*
+
+**d.** Explain why the main effect for treatment is negative? *Does this result make sense?
+
+*This means that for the baseline year, 2012, treatment groups had lower lobster counts than the control group. This means that, on average, the treatment groups started with fewer lobsters which could introduce challenges in comparing the treated and non-treated areas.*
 
 **e.** Look at the model predictions: Use the `interact_plot()` function from package `interactions` to plot mean predictions by year and treatment status. 
 
 ```{r}
-
-# ---- Check out model predictions ----
-
-ff_counts <- ff_counts |>
-    group_by(year, mpa) |>
-                 # group by year and mpa to calculate mean_count
-                 summarise(mean_count = mean(counts, na.rm = TRUE)) |>
-                 # convert year to factor
-                 mutate(year = as.factor(year)) |>
-     ungroup()
-
-# Use interact_plot to plot mean predictions by year and treatment site
-interact_plot(m5_fixedeffs, pred = year, modx = treat,
+# ---- Plot mean predictions by year and treatment site with interact_plot ----
+interact_plot(m5_fixedeffs,
+              pred = year,
+              modx = treat,
               outcome.scale = "response")
-
 ```
 
 **f.** Re-evaluate your responses (c) and (b) above. 
+*It means that the mpa and non-mpa groups started at different baselines.*
 
 **g.** Using `ggplot()` create a plot in same style as the previous `interaction plot`, but displaying the original scale of the outcome variable (lobster counts). This type of plot is commonly used to show how the treatment effect changes across discrete time points (i.e., panel data).
 
@@ -530,16 +528,18 @@ The plot should have...
 # Hint 1: Group counts by `year` and `mpa` and calculate the `mean_count`
 # Hint 2: Convert variable `year` to a factor
 
+# Group by year and mpa
 plot_counts <- spiny_counts |> 
     group_by(year, mpa) |>
     
+    # Calculate mean
     summarize(
-        counts = n(),
         mean_count = mean(counts, na.rm = TRUE)
     ) |>
     
     ungroup()
 
+# Create a line plot of mean count by year
 plot_counts |> ggplot(aes(x = year, y = mean_count, color = mpa)) +
     geom_line()
 
