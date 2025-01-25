@@ -5,7 +5,8 @@ author: "EDS 241"
 date: "1/8/2024 (Due 1/22)"
 output: 
     html_document:
-      theme: flatly
+    theme: flatly
+    keep_md: yes
     pdf_document: default
 editor_options: 
   chunk_output_type: console
@@ -15,7 +16,8 @@ editor_options:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(eval=FALSE, warning = FALSE, message = FALSE )
+knitr::opts_chunk$set(eval=FALSE, warning = FALSE, message = FALSE)
+
 ```
 
 ------------------------------------------------------------------------
@@ -85,7 +87,8 @@ Step 1: Anticipating potential sources of selection bias
 
 **a.** Do the control sites (Arroyo Quemado, Carpinteria, and Mohawk) provide a strong counterfactual for our treatment sites (Naples, Isla Vista)? Write a paragraph making a case for why this comparison is centris paribus or whether selection bias is likely (be specific!).  
 
-There are a lot of location-specific variables in marine ecosystems that can't be fully controlled for, so I think that selection bias is likely to be present not only between the control and treatment sites, but also within the treatment and control groups themselves. From what I found on [wildlife.ca](https://wildlife.ca.gov/Conservation/Marine/MPAs/Naples), the two treatment sites have different fishing regulations; while Isla Vista is a "No-Take" zone, Naples allows recreational take of some pelagic fish and for the commercial take of kelp. I imagine that the difference in fishing behavior could likely influence the broader marine ecosystem, including for lobsters, which could introduce bias within the treatment group. Additionally, the sites, though all located in the greater Santa Barbara region, are dispersed broadly across the coast and likely have different baselines in variables such as proximity to pollution, habitat disturbance, among other environmental/human factors that may introduce challenges in comparing the sites.
+*There are a lot of location-specific variables in marine ecosystems that can't be fully controlled for, so I think that selection bias is likely to be present not only between the control and treatment sites, but also within the treatment and control groups themselves. From what I found on [wildlife.ca](https://wildlife.ca.gov/Conservation/Marine/MPAs/Naples), the two treatment sites have different fishing regulations; while Isla Vista is a "No-Take" zone, Naples allows recreational take of some pelagic fish and for the commercial take of kelp. I imagine that the difference in fishing behavior could likely influence the broader marine ecosystem, including for lobsters, which could introduce bias within the treatment group. Additionally, the sites, though all located in the greater Santa Barbara region, are dispersed broadly across the coast and likely have different baselines in variables such as proximity to pollution, habitat disturbance, among other environmental/human factors that may introduce challenges in comparing the sites.*
+
 ------------------------------------------------------------------------
 
 Step 2: Read & wrangle data
@@ -138,7 +141,7 @@ spiny_counts <- tidydata |>
     
     # count lobsters observed at each site-year-transect observation & mean size
     summarize(
-        counts = n(),
+        counts = sum(count, na.rm = TRUE),
         mean_size = mean(size_mm, na.rm = TRUE)
     ) |>
     ungroup() |>
@@ -288,10 +291,15 @@ spiny_counts |>
 
 ```{r}
 # Compare means of the outcome by treatment group
-spiny_counts |> tbl_summary(
-    by = treat,
-    statistic = list(counts ~ "{mean}"),
-)
+
+spiny_counts |> 
+    ungroup() |>
+    dplyr::select(treat, counts) |>
+    tbl_summary(
+        by = treat,
+        statistic = list(all_continuous() ~ "{mean} ({sd})"))|>
+    modify_header(label ~ "Variable")|>
+    modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment**")
 ```
 
 ------------------------------------------------------------------------
@@ -320,27 +328,27 @@ check_model(m1_ols,  check = "qq" )
 ```
 **d.** Explain the results of the 4 diagnostic plots. Why are we getting this result?
 
-In OLS there is an assumption of normality of residuals. In the case of the the qq plot, ideally we would like to see the points fall along the line, since we are seeing a curve it means that the residuals are not normally distributed, violating the assumption of normality.
+*In OLS there is an assumption of normality of residuals. In the case of the the qq plot, ideally we would like to see the points fall along the line, since we are seeing a curve it means that the residuals are not normally distributed, violating the assumption of normality.*
 
 ```{r}
 # Check normality
 check_model(m1_ols, check = "normality")
 ```
 
-This is another way to check the normality of the residuals. Ideally, we would see the distribution of the residuals (shaded in blue) fall within the bounds of the normal curve. This plot shows a skewed distribution of residuals that doesn't follow the normal curve, it reinforces that the residuals are not normally distributed. Since there are more negative residuals, this could mean that the model is underestimating the values.
+*This is another way to check the normality of the residuals. Ideally, we would see the distribution of the residuals (shaded in blue) fall within the bounds of the normal curve. This plot shows a skewed distribution of residuals that doesn't follow the normal curve, it reinforces that the residuals are not normally distributed. Since there are more negative residuals, this could mean that the model is underestimating the values.*
 
 ```{r}
 # Check homogeneity
 check_model(m1_ols, check = "homogeneity")
 ```
-This plot shows the homogeneity of variance. Ideally, the reference line would be flat, which would mean that there is little variance of the residuals across the fitted values. Since we are seeing a curve it means that the variance is not constant, violating the assumption of homogeneity of variance.
+*This plot shows the homogeneity of variance. Ideally, the reference line would be flat, which would mean that there is little variance of the residuals across the fitted values. Since we are seeing a curve it means that the variance is not constant, violating the assumption of homogeneity of variance.*
 
 ```{r}
 # Check pp check
 check_model(m1_ols, check = "pp_check")
 ```
 
-The posterior predictive check shows how well the model-predicted data fits the observed data. In this case, the observed data is significantly higher than the model-predicted data, which means that the model is underestimating the predictions. This could be for a number of reasons but indicates that we should maybe choose a different model that better fits the data and/or we may need to transform the data.
+*The posterior predictive check shows how well the model-predicted data fits the observed data. In this case, the observed data is significantly higher than the model-predicted data, which means that the model is underestimating the predictions. This could be for a number of reasons but indicates that we should maybe choose a different model that better fits the data and/or we may need to transform the data.*
 
 ------------------------------------------------------------------------
 
@@ -361,11 +369,11 @@ m2_pois <- glm(
 summ(m2_pois, model.fit = FALSE)
 
 # Transform the coefficient for IRR to get percent change
-exp(0.28) - 1
+exp(0.21) - 1
 ```
 **b.** Interpret the predictor coefficient in your own words. Use full sentences and write your interpretation of the results to be as clear as possible to a non-academic audience.
 
-*The poisson model predicted that there is a 32% increase in lobster abundance at the treatment sites compared to the baseline.*
+*The poisson model predicted that there is a 23% increase in lobster abundance at the treatment sites compared to the control.*
 
 **c.** Explain the statistical concept of dispersion and overdispersion in the context of this model. 
 *For a poisson model, there is an assumption that the mean and the variance are supposed to be equal. Dispersion describes the spread of data around the mean; and overdispersion is used to describe when the variance is greater than the mean. If there is overdispersion then the poisson model will underestimate the variability.*
@@ -411,8 +419,7 @@ m3_nb <- glm.nb(
 summ(m3_nb, model.fit = FALSE)
 
 # transform the coefficient
-exp(0.28) - 1
-
+exp(0.21) - 1
 ```
 
 **h.** In 1-2 sentences explain rationale for fitting this GLM model.
@@ -426,7 +433,7 @@ exp(0.28) - 1
 # Check for overdispersion
 check_overdispersion(m3_nb)
 ```
-*There is overdispersion detected in this model, because of the variance.*
+*There is no overdispersion detected in this model, because it accounts for the variance better.*
 
 ```{r}
 # Check for zero inflation
@@ -475,23 +482,24 @@ Step 7: Building intuition - fixed effects
 - Estimate fixed effects for `year`
 - Include an interaction term between variables `treat` and `year`
 
-
 ```{r}
 # ---- Try again using 'year' as a factor ----
+ff_counts <- spiny_counts %>% 
+    mutate(year=as_factor(year))
+    
+m5_fixedeffs <- glm.nb(
+    counts ~ 
+        treat +
+        year +
+        treat*year,
+    data = ff_counts)
 
-f_counts <- spiny_counts |> 
-    mutate(year = as_factor(year))
-
-# Run ols with updated parameters
-m5_fixedeffs <- lm(
-    log(counts+1) ~ treat*year,
-    data = f_counts)
+summ(m5_fixedeffs, model.fit = FALSE)
 
 ```
 
 
 **c.** Take a look at the regression output. Each coefficient provides a comparison or the difference in means for a specific sub-group in the data. Informally, describe the what the model has estimated at a conceptual level (NOTE: you do not have to interpret coefficients individually)
-
 
 ```{r}
 # Check model summary
@@ -550,13 +558,24 @@ plot_counts |> ggplot(aes(x = year, y = mean_count, color = mpa)) +
 Step 8: Reconsider causal identification assumptions
 
 a. Discuss whether you think `spillover effects` are likely in this research context (see Glossary of terms; https://docs.google.com/document/d/1RIudsVcYhWGpqC-Uftk9UTz3PIq6stVyEpT44EPNgpE/edit?usp=sharing)
+
+*The spillover effect is likely to be present in this research setting, especially since there are no hard boundary lines around the perimeter of the the study areas. There are environmental factors, some that could be influenced by the treatment, that could influence competition/ecology of the area influencing lobsters to migrate between the treated and control sites, especially for treatment sites that are located next to a control site.*
+
 b. Explain why spillover is an issue for the identification of causal effects
+
+*Spillover is an issue because it violates the assumption of no interference between the control and treatment group for causal inference.*
+
 c. How does spillover relate to impact in this research setting?
+
+*It is important to consider the spillover effect of our treatment areas when designing our study, so that we can choose control sites/methods that properly account for it.*
+
 d. Discuss the following causal inference assumptions in the context of the MPA treatment effect estimator. Evaluate if each of the assumption are reasonable: 
     
     1) SUTVA: Stable Unit Treatment Value assumption 
+ *SUTVA requires no-interference, which is described above, and no hidden variations in the treatment.From what I found on [wildlife.ca](https://wildlife.ca.gov/Conservation/Marine/MPAs/Naples), the two treatment sites have different fishing regulations; while Isla Vista is a "No-Take" zone, Naples allows recreational take of some pelagic fish and for the commercial take of kelp, which I think would violate the requirement for no variations in treatment (since we didn't account for it in our models). So I would argue that both of these assumptions are not reasonable as is.*
+    
     2) Excludability assumption
-
+*Since the sites are all located in the greater Santa Barbara region, dispersed broadly across the coast and likely have different baselines in variables such as proximity to pollution, habitat disturbance, among other environmental/human factors that may introduce challenges in comparing the sites. I don't think that excludability is a reasonable assumption as is.*
 ------------------------------------------------------------------------
 
 # EXTRA CREDIT
