@@ -77,6 +77,16 @@
 \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
 \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
 \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
 \usepackage{graphicx}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -94,6 +104,29 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{longtable}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{anyfontsize}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage{hhline}
+\usepackage{calc}
+\usepackage{tabularx}
+\usepackage{adjustbox}
+\usepackage{hyperref}
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -121,9 +154,6 @@ Reef Sites in Santa Barbara County}
 
 \begin{document}
 \maketitle
-
-\section{Assignment submission: Nicole
-Pepper}\label{assignment-submission-nicole-pepper}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -154,28 +184,18 @@ Pepper}\label{assignment-submission-nicole-pepper}
   rubric for details about presentation standards.
 \end{itemize}
 
-\textbf{Assignment submission (YOUR NAME):}
-\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+\textbf{Assignment submission (YOUR NAME):} \_\_\_\_\_Nicole
+Pepper\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
-\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# {-}{-}{-}{-} load libraries {-}{-}{-}{-}}
-\FunctionTok{library}\NormalTok{(tidyverse)}
-\FunctionTok{library}\NormalTok{(here)}
-\FunctionTok{library}\NormalTok{(janitor)}
-\FunctionTok{library}\NormalTok{(estimatr)  }
-\FunctionTok{library}\NormalTok{(performance)}
-\FunctionTok{library}\NormalTok{(jtools)}
-\FunctionTok{library}\NormalTok{(gt)}
-\FunctionTok{library}\NormalTok{(gtsummary)}
-\FunctionTok{library}\NormalTok{(MASS) }\DocumentationTok{\#\# }\AlertTok{NOTE}\DocumentationTok{: The \textasciigrave{}select()\textasciigrave{} function is masked. Use: \textasciigrave{}dplyr::select()\textasciigrave{} \#\#}
-\FunctionTok{library}\NormalTok{(interactions) }
-\end{Highlighting}
-\end{Shaded}
-
-\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 0\tabcolsep) * \real{0.9861}}@{}}
+\toprule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Collaborators:} Carmen Hoyt \\
+\texttt{r\ \#\ -\/-\/-\/-\ load\ libraries\ -\/-\/-\/-\ library(tidyverse)\ library(here)\ library(janitor)\ library(estimatr)\ library(performance)\ library(jtools)\ library(gt)\ library(gtsummary)\ library(MASS)\ \#\#\ NOTE:\ The\ \textasciigrave{}select()\textasciigrave{}\ function\ is\ masked.\ Use:\ \textasciigrave{}dplyr::select()\textasciigrave{}\ \#\#\ library(interactions)} \\
+\end{longtable}
 
 \paragraph{DATA SOURCE:}\label{data-source}
 
@@ -191,9 +211,8 @@ Dataset accessed 11/17/2019.
 
 You're about to dive into some deep data collected from five reef sites
 in Santa Barbara County, all about the abundance of California spiny
-lobsters! 🦞 Data was gathered by divers annually from 2012 to 2018
-across Naples, Mohawk, Isla Vista, Carpinteria, and Arroyo Quemado
-reefs.
+lobsters! Data was gathered by divers annually from 2012 to 2018 across
+Naples, Mohawk, Isla Vista, Carpinteria, and Arroyo Quemado reefs.
 
 Why lobsters? Well, this sample provides an opportunity to evaluate the
 impact of Marine Protected Areas (MPAs) established on January 1, 2012
@@ -350,12 +369,63 @@ Step 3: Explore \& visualize data
 \CommentTok{\# {-}{-}{-}{-} explore data {-}{-}{-}{-}}
 
 \FunctionTok{head}\NormalTok{(spiny\_counts)}
-\FunctionTok{head}\NormalTok{(tidydata)}
+\end{Highlighting}
+\end{Shaded}
 
+\begin{verbatim}
+## # A tibble: 6 x 7
+##   site   year transect counts mean_size mpa     treat
+##   <chr> <int>    <int>  <int>     <dbl> <chr>   <dbl>
+## 1 AQUE   2012        1      5      64.2 non_MPA     0
+## 2 AQUE   2012        2      9      66   non_MPA     0
+## 3 AQUE   2012        3      0     NaN   non_MPA     0
+## 4 AQUE   2012        4      9      74.1 non_MPA     0
+## 5 AQUE   2012        5     11      76.9 non_MPA     0
+## 6 AQUE   2012        6      0     NaN   non_MPA     0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(tidydata)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   year month       date site transect replicate size_mm count num_ao area
+## 1 2012     8 2012-08-20 IVEE        1         A      NA     0      0  300
+## 2 2012     8 2012-08-20 IVEE        1         B      NA     0      0  300
+## 3 2012     8 2012-08-20 IVEE        1         C      NA     0      0  300
+## 4 2012     8 2012-08-20 IVEE        1         D      NA     0      0  300
+## 5 2012     8 2012-08-20 IVEE        2         A      NA     0      0  300
+## 6 2012     8 2012-08-20 IVEE        2         B      NA     0      0  300
+##         reef
+## 1 Isla Vista
+## 2 Isla Vista
+## 3 Isla Vista
+## 4 Isla Vista
+## 5 Isla Vista
+## 6 Isla Vista
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \FunctionTok{dim}\NormalTok{(spiny\_counts)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 252   7
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \FunctionTok{dim}\NormalTok{(tidydata)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+## [1] 4362   11
+\end{verbatim}
 
 \textbf{b.} We will focus on the variables \texttt{count},
 \texttt{year}, \texttt{site}, and \texttt{treat}(\texttt{mpa}) to model
@@ -399,6 +469,8 @@ Create plots displaying the distribution of lobster \textbf{counts}:
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\CommentTok{\#|}
+
 \CommentTok{\# {-}{-}{-}{-} Grouped by reef site {-}{-}{-}{-}}
 
 \CommentTok{\# Create a violin plot of lobster counts by reef site}
@@ -417,6 +489,8 @@ Create plots displaying the distribution of lobster \textbf{counts}:
          \AttributeTok{y =} \StringTok{"Site Name"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-6-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -439,6 +513,8 @@ Create plots displaying the distribution of lobster \textbf{counts}:
          \AttributeTok{fill =} \StringTok{"MPA Status"}\NormalTok{) }
 \end{Highlighting}
 \end{Shaded}
+
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-7-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -465,6 +541,8 @@ Create plots displaying the distribution of lobster \textbf{counts}:
          \AttributeTok{color =} \StringTok{"MPA Status"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-8-1.pdf}
 
 Create a plot of lobster \textbf{size} :
 
@@ -504,6 +582,8 @@ Create a plot of lobster \textbf{size} :
 \end{Highlighting}
 \end{Shaded}
 
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-9-1.pdf}
+
 \textbf{c.} Compare means of the outcome by treatment group. Using the
 \texttt{tbl\_summary()} function from the package
 \href{https://www.danieldsjoberg.com/gtsummary/articles/tbl_summary.html}{\texttt{gt\_summary}}
@@ -522,6 +602,22 @@ Create a plot of lobster \textbf{size} :
     \FunctionTok{modify\_spanning\_header}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"stat\_1"}\NormalTok{, }\StringTok{"stat\_2"}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"**Treatment**"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{table}[!t]
+\fontsize{12.0pt}{14.4pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcc}
+\toprule
+ & \multicolumn{2}{c}{\textbf{Treatment}} \\ 
+\cmidrule(lr){2-3}
+Variable & \textbf{0}  N = 133\textsuperscript{\textit{1}} & \textbf{1}  N = 119\textsuperscript{\textit{1}} \\ 
+\midrule\addlinespace[2.5pt]
+counts & 23 (39) & 28 (44) \\ 
+\bottomrule
+\end{tabular*}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}Mean (SD)\\
+\end{minipage}
+\end{table}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -550,6 +646,32 @@ audience.
 \end{Highlighting}
 \end{Shaded}
 
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!10}{Observations} & \cellcolor{gray!10}{252}\\
+Dependent variable & counts\\
+\cellcolor{gray!10}{Type} & \cellcolor{gray!10}{OLS linear regression}\\
+\bottomrule
+\end{tabular}
+\end{table}  \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+  & Est. & S.E. & t val. & p\\
+\midrule
+\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{22.73} & \cellcolor{gray!10}{3.57} & \cellcolor{gray!10}{6.36} & \cellcolor{gray!10}{0.00}\\
+treat & 5.36 & 5.20 & 1.03 & 0.30\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: OLS
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
 \emph{The simple OLS model predicted that there is a 5\% increase in
 lobster abundance at the treatment sites compared to the baseline.}
 \textbf{c.} Check the model assumptions using the \texttt{check\_model}
@@ -562,6 +684,7 @@ function from the \texttt{performance} package
 \end{Highlighting}
 \end{Shaded}
 
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-12-1.pdf}
 \textbf{d.} Explain the results of the 4 diagnostic plots. Why are we
 getting this result?
 
@@ -576,6 +699,8 @@ are not normally distributed, violating the assumption of normality.}
 \FunctionTok{check\_model}\NormalTok{(m1\_ols, }\AttributeTok{check =} \StringTok{"normality"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-13-1.pdf}
 
 \emph{This is another way to check the normality of the residuals.
 Ideally, we would see the distribution of the residuals (shaded in blue)
@@ -592,6 +717,7 @@ underestimating the values.}
 \end{Highlighting}
 \end{Shaded}
 
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-14-1.pdf}
 \emph{This plot shows the homogeneity of variance. Ideally, the
 reference line would be flat, which would mean that there is little
 variance of the residuals across the fitted values. Since we are seeing
@@ -604,6 +730,8 @@ assumption of homogeneity of variance.}
 \FunctionTok{check\_model}\NormalTok{(m1\_ols, }\AttributeTok{check =} \StringTok{"pp\_check"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-15-1.pdf}
 
 \emph{The posterior predictive check shows how well the model-predicted
 data fits the observed data. In this case, the observed data is
@@ -631,11 +759,47 @@ function
 
 \CommentTok{\# Summarize model}
 \FunctionTok{summ}\NormalTok{(m2\_pois, }\AttributeTok{model.fit =} \ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!10}{Observations} & \cellcolor{gray!10}{252}\\
+Dependent variable & counts\\
+\cellcolor{gray!10}{Type} & \cellcolor{gray!10}{Generalized linear model}\\
+Family & poisson\\
+\cellcolor{gray!10}{Link} & \cellcolor{gray!10}{log}\\
+\bottomrule
+\end{tabular}
+\end{table}  \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+  & Est. & S.E. & z val. & p\\
+\midrule
+\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{3.12} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{171.74} & \cellcolor{gray!10}{0.00}\\
+treat & 0.21 & 0.03 & 8.44 & 0.00\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: MLE
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \CommentTok{\# Transform the coefficient for IRR to get percent change}
 \FunctionTok{exp}\NormalTok{(}\FloatTok{0.21}\NormalTok{) }\SpecialCharTok{{-}} \DecValTok{1}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+## [1] 0.2336781
+\end{verbatim}
 
 \textbf{b.} Interpret the predictor coefficient in your own words. Use
 full sentences and write your interpretation of the results to be as
@@ -670,6 +834,8 @@ underestimating the predictions.}
 \end{Highlighting}
 \end{Shaded}
 
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-17-1.pdf}
+
 \emph{Looking at the QQ plot, it indicates that the model violates the
 assumption of normality, since the residuals are distributed in an ``S''
 curve along the quantiles, rather than following along the line. The PP
@@ -687,6 +853,14 @@ results.
 \end{Highlighting}
 \end{Shaded}
 
+\begin{verbatim}
+## # Overdispersion test
+## 
+##        dispersion ratio =    67.033
+##   Pearson's Chi-Squared = 16758.289
+##                 p-value =   < 0.001
+\end{verbatim}
+
 \emph{There was overdispersion detected in this model which means that
 the variance is greater than the mean; this indicates that there could
 be other factors (an omitted variable) influencing count that around
@@ -698,6 +872,14 @@ included in the model.}
 \FunctionTok{check\_zeroinflation}\NormalTok{(m2\_pois)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+## # Check for zero-inflation
+## 
+##    Observed zeros: 27
+##   Predicted zeros: 0
+##             Ratio: 0.00
+\end{verbatim}
 
 \emph{There was no observed zeros in the response variable, which means
 that there are other reasons, such as environmental factors,
@@ -717,11 +899,47 @@ from the package \texttt{MASS} and check model diagnostics
 
 \CommentTok{\# Summarize model}
 \FunctionTok{summ}\NormalTok{(m3\_nb, }\AttributeTok{model.fit =} \ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
 
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!10}{Observations} & \cellcolor{gray!10}{252}\\
+Dependent variable & counts\\
+\cellcolor{gray!10}{Type} & \cellcolor{gray!10}{Generalized linear model}\\
+Family & Negative Binomial(0.55)\\
+\cellcolor{gray!10}{Link} & \cellcolor{gray!10}{log}\\
+\bottomrule
+\end{tabular}
+\end{table}  \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+  & Est. & S.E. & z val. & p\\
+\midrule
+\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{3.12} & \cellcolor{gray!10}{0.12} & \cellcolor{gray!10}{26.40} & \cellcolor{gray!10}{0.00}\\
+treat & 0.21 & 0.17 & 1.23 & 0.22\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: MLE
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \CommentTok{\# transform the coefficient}
 \FunctionTok{exp}\NormalTok{(}\FloatTok{0.21}\NormalTok{) }\SpecialCharTok{{-}} \DecValTok{1}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+## [1] 0.2336781
+\end{verbatim}
 
 \textbf{h.} In 1-2 sentences explain rationale for fitting this GLM
 model. \emph{Binomial models are good to use when data indicates
@@ -744,6 +962,13 @@ estimated a 5.9\% increase.}
 \end{Highlighting}
 \end{Shaded}
 
+\begin{verbatim}
+## # Overdispersion test
+## 
+##  dispersion ratio = 1.398
+##           p-value = 0.088
+\end{verbatim}
+
 \emph{There is no overdispersion detected in this model, because it
 accounts for the variance better.}
 
@@ -753,6 +978,14 @@ accounts for the variance better.}
 \FunctionTok{check\_zeroinflation}\NormalTok{(m3\_nb)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+## # Check for zero-inflation
+## 
+##    Observed zeros: 27
+##   Predicted zeros: 30
+##             Ratio: 1.12
+\end{verbatim}
 
 \emph{There were no observed zeros in this model, which means we dont
 have to worry about that issue with this model.}
@@ -764,6 +997,7 @@ have to worry about that issue with this model.}
 \end{Highlighting}
 \end{Shaded}
 
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-23-1.pdf}
 \emph{The pp check shows a much better fit for this model. The model
 predicted intervals match closely with the observed data points, which
 means that the model-predicted data fits the observed data well.}
@@ -775,6 +1009,7 @@ means that the model-predicted data fits the observed data well.}
 \end{Highlighting}
 \end{Shaded}
 
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-24-1.pdf}
 \emph{The checks all match the ideal distributions well, which means
 that the predicted data and observed values fit the assumptions of the
 model well.}
@@ -795,6 +1030,78 @@ side-by-side.
              \AttributeTok{statistics =} \StringTok{"none"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+ 
+  \providecommand{\huxb}[2]{\arrayrulecolor[RGB]{#1}\global\arrayrulewidth=#2pt}
+  \providecommand{\huxvb}[2]{\color[RGB]{#1}\vrule width #2pt}
+  \providecommand{\huxtpad}[1]{\rule{0pt}{#1}}
+  \providecommand{\huxbpad}[1]{\rule[-#1]{0pt}{#1}}
+
+\begin{table}[ht]
+\begin{centerbox}
+\begin{threeparttable}
+ \setlength{\tabcolsep}{0pt}
+\begin{tabular}{l l l l}
+
+
+\hhline{>{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}-}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt} OLS \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt} Poisson \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt} NB \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{>{\huxb{255, 255, 255}{0.4}}->{\huxb{0, 0, 0}{0.4}}->{\huxb{0, 0, 0}{0.4}}->{\huxb{0, 0, 0}{0.4}}-}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} (Intercept) \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 22.73 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 3.12 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 3.12 *** \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (3.57)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.02)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.12)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} treat \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 5.36\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 0.21 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 0.21\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (5.20)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.03)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.17)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{>{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}-}
+\arrayrulecolor{black}
+
+\multicolumn{4}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt}  *** p $<$ 0.001;  ** p $<$ 0.01;  * p $<$ 0.05. \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+\end{tabular}
+\end{threeparttable}\par\end{centerbox}
+
+\end{table}
+ 
 
 \textbf{c.} Write a short paragraph comparing the results. Is the
 treatment effect \texttt{robust} or stable across the model
@@ -845,6 +1152,48 @@ converted to a factor
 \end{Highlighting}
 \end{Shaded}
 
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!10}{Observations} & \cellcolor{gray!10}{252}\\
+Dependent variable & counts\\
+\cellcolor{gray!10}{Type} & \cellcolor{gray!10}{Generalized linear model}\\
+Family & Negative Binomial(0.8129)\\
+\cellcolor{gray!10}{Link} & \cellcolor{gray!10}{log}\\
+\bottomrule
+\end{tabular}
+\end{table}  \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+  & Est. & S.E. & z val. & p\\
+\midrule
+\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{2.35} & \cellcolor{gray!10}{0.26} & \cellcolor{gray!10}{8.89} & \cellcolor{gray!10}{0.00}\\
+treat & -1.72 & 0.42 & -4.12 & 0.00\\
+\cellcolor{gray!10}{year2013} & \cellcolor{gray!10}{-0.35} & \cellcolor{gray!10}{0.38} & \cellcolor{gray!10}{-0.93} & \cellcolor{gray!10}{0.35}\\
+year2014 & 0.08 & 0.37 & 0.21 & 0.84\\
+\cellcolor{gray!10}{year2015} & \cellcolor{gray!10}{0.86} & \cellcolor{gray!10}{0.37} & \cellcolor{gray!10}{2.32} & \cellcolor{gray!10}{0.02}\\
+\addlinespace
+year2016 & 0.90 & 0.37 & 2.43 & 0.01\\
+\cellcolor{gray!10}{year2017} & \cellcolor{gray!10}{1.56} & \cellcolor{gray!10}{0.37} & \cellcolor{gray!10}{4.25} & \cellcolor{gray!10}{0.00}\\
+year2018 & 1.04 & 0.37 & 2.81 & 0.00\\
+\cellcolor{gray!10}{treat:year2013} & \cellcolor{gray!10}{1.52} & \cellcolor{gray!10}{0.57} & \cellcolor{gray!10}{2.66} & \cellcolor{gray!10}{0.01}\\
+treat:year2014 & 2.14 & 0.56 & 3.80 & 0.00\\
+\addlinespace
+\cellcolor{gray!10}{treat:year2015} & \cellcolor{gray!10}{2.12} & \cellcolor{gray!10}{0.56} & \cellcolor{gray!10}{3.79} & \cellcolor{gray!10}{0.00}\\
+treat:year2016 & 1.40 & 0.56 & 2.50 & 0.01\\
+\cellcolor{gray!10}{treat:year2017} & \cellcolor{gray!10}{1.55} & \cellcolor{gray!10}{0.56} & \cellcolor{gray!10}{2.77} & \cellcolor{gray!10}{0.01}\\
+treat:year2018 & 2.62 & 0.56 & 4.69 & 0.00\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: MLE
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
 \textbf{c.} Take a look at the regression output. Each coefficient
 provides a comparison or the difference in means for a specific
 sub-group in the data. Informally, describe the what the model has
@@ -857,6 +1206,48 @@ coefficients individually)
 \FunctionTok{summ}\NormalTok{(m5\_fixedeffs, }\AttributeTok{model.fit =} \ConstantTok{FALSE}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!10}{Observations} & \cellcolor{gray!10}{252}\\
+Dependent variable & counts\\
+\cellcolor{gray!10}{Type} & \cellcolor{gray!10}{Generalized linear model}\\
+Family & Negative Binomial(0.8129)\\
+\cellcolor{gray!10}{Link} & \cellcolor{gray!10}{log}\\
+\bottomrule
+\end{tabular}
+\end{table}  \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+  & Est. & S.E. & z val. & p\\
+\midrule
+\cellcolor{gray!10}{(Intercept)} & \cellcolor{gray!10}{2.35} & \cellcolor{gray!10}{0.26} & \cellcolor{gray!10}{8.89} & \cellcolor{gray!10}{0.00}\\
+treat & -1.72 & 0.42 & -4.12 & 0.00\\
+\cellcolor{gray!10}{year2013} & \cellcolor{gray!10}{-0.35} & \cellcolor{gray!10}{0.38} & \cellcolor{gray!10}{-0.93} & \cellcolor{gray!10}{0.35}\\
+year2014 & 0.08 & 0.37 & 0.21 & 0.84\\
+\cellcolor{gray!10}{year2015} & \cellcolor{gray!10}{0.86} & \cellcolor{gray!10}{0.37} & \cellcolor{gray!10}{2.32} & \cellcolor{gray!10}{0.02}\\
+\addlinespace
+year2016 & 0.90 & 0.37 & 2.43 & 0.01\\
+\cellcolor{gray!10}{year2017} & \cellcolor{gray!10}{1.56} & \cellcolor{gray!10}{0.37} & \cellcolor{gray!10}{4.25} & \cellcolor{gray!10}{0.00}\\
+year2018 & 1.04 & 0.37 & 2.81 & 0.00\\
+\cellcolor{gray!10}{treat:year2013} & \cellcolor{gray!10}{1.52} & \cellcolor{gray!10}{0.57} & \cellcolor{gray!10}{2.66} & \cellcolor{gray!10}{0.01}\\
+treat:year2014 & 2.14 & 0.56 & 3.80 & 0.00\\
+\addlinespace
+\cellcolor{gray!10}{treat:year2015} & \cellcolor{gray!10}{2.12} & \cellcolor{gray!10}{0.56} & \cellcolor{gray!10}{3.79} & \cellcolor{gray!10}{0.00}\\
+treat:year2016 & 1.40 & 0.56 & 2.50 & 0.01\\
+\cellcolor{gray!10}{treat:year2017} & \cellcolor{gray!10}{1.55} & \cellcolor{gray!10}{0.56} & \cellcolor{gray!10}{2.77} & \cellcolor{gray!10}{0.01}\\
+treat:year2018 & 2.62 & 0.56 & 4.69 & 0.00\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: MLE
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 \emph{This model is predicting how the effect of treatment on lobster
 counts varies by year. For most years, treatment had a positive effect
@@ -883,6 +1274,8 @@ plot mean predictions by year and treatment status.
               \AttributeTok{outcome.scale =} \StringTok{"response"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-28-1.pdf}
 
 \textbf{f.} Re-evaluate your responses (c) and (b) above. \emph{It means
 that the mpa and non-mpa groups started at different baselines.}
@@ -917,6 +1310,8 @@ The plot should have\ldots{} - \texttt{year} on the x-axis -
     \FunctionTok{geom\_line}\NormalTok{()}
 \end{Highlighting}
 \end{Shaded}
+
+\includegraphics{hw1-lobstrs-eds241_files/figure-latex/unnamed-chunk-29-1.pdf}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 

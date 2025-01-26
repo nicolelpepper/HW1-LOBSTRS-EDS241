@@ -12,12 +12,9 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Assignment submission: Nicole Pepper
-
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(eval=FALSE, warning = FALSE, message = FALSE)
-
+knitr::opts_chunk$set(eval=TRUE, warning = FALSE, message = FALSE)
 ```
 
 ------------------------------------------------------------------------
@@ -39,10 +36,11 @@ knitr::opts_chunk$set(eval=FALSE, warning = FALSE, message = FALSE)
 -  Your knitted presentation should meet the quality you'd submit to research colleagues or feel confident sharing publicly. Refer to the rubric for details about presentation standards.
 
 
-**Assignment submission (YOUR NAME):** ______________________________________
+**Assignment submission (YOUR NAME):** _____Nicole Pepper_________________________________
 
 
 ----------------------------------------------------------------------
+**Collaborators:** Carmen Hoyt
 
 ```{r}
 
@@ -70,7 +68,7 @@ Reed D. 2019. SBC LTER: Reef: Abundance, size and fishing effort for California 
 
 ### **Introduction**
 
-You're about to dive into some deep data collected from five reef sites in Santa Barbara County, all about the abundance of California spiny lobsters! 🦞 Data was gathered by divers annually from 2012 to 2018 across Naples, Mohawk, Isla Vista, Carpinteria, and Arroyo Quemado reefs.
+You're about to dive into some deep data collected from five reef sites in Santa Barbara County, all about the abundance of California spiny lobsters! Data was gathered by divers annually from 2012 to 2018 across Naples, Mohawk, Isla Vista, Carpinteria, and Arroyo Quemado reefs.
 
 Why lobsters? Well, this sample provides an opportunity to evaluate the impact of Marine Protected Areas (MPAs) established on January 1, 2012 (Reed, 2019). Of these five reefs, Naples, and Isla Vista are MPAs, while the other three are not protected (non-MPAs). Comparing lobster health between these protected and non-protected areas gives us the chance to study how commercial and recreational fishing might impact these ecosystems.
 
@@ -87,7 +85,7 @@ Step 1: Anticipating potential sources of selection bias
 
 **a.** Do the control sites (Arroyo Quemado, Carpinteria, and Mohawk) provide a strong counterfactual for our treatment sites (Naples, Isla Vista)? Write a paragraph making a case for why this comparison is centris paribus or whether selection bias is likely (be specific!).  
 
-*There are a lot of location-specific variables in marine ecosystems that can't be fully controlled for, so I think that selection bias is likely to be present not only between the control and treatment sites, but also within the treatment and control groups themselves. From what I found on [wildlife.ca](https://wildlife.ca.gov/Conservation/Marine/MPAs/Naples), the two treatment sites have different fishing regulations; while Isla Vista is a "No-Take" zone, Naples allows recreational take of some pelagic fish and for the commercial take of kelp. I imagine that the difference in fishing behavior could likely influence the broader marine ecosystem, including for lobsters, which could introduce bias within the treatment group. Additionally, the sites, though all located in the greater Santa Barbara region, are dispersed broadly across the coast and likely have different baselines in variables such as proximity to pollution, habitat disturbance, among other environmental/human factors that may introduce challenges in comparing the sites.*
+*There are a lot of location-specific variables in marine ecosystems that can't be fully controlled for, so I think that selection bias is likely to be present not only between the control and treatment sites, but also within the treatment and control groups themselves. From what I found on [wildlife.ca](https://wildlife.ca.gov/Conservation/Marine/MPAs/Naples), the two treatment sites have different fishing regulations; while Isla Vista is a "No-Take" zone, Naples allows recreational take of some pelagic fish and for the commercial take of kelp. I imagine that the difference in fishing behavior could likely influence the broader marine ecosystem, including for lobsters, which could introduce bias within the treatment group. Additionally, the sites, though all located in the greater Santa Barbara region, are dispersed broadly across the coast and likely have different baselines in variables such as proximity to pollution, habitat disturbance, among other environmental/human factors that may introduce challenges in comparing the sites. Additionally, because there are no hard boundaries between the datasets, there is a risk that effects from the treatment could spillover and have an impact on the control sites. With this in mind, I am not confident that the control sites provide a strong counterfactual for our treatment sites.*
 
 ------------------------------------------------------------------------
 
@@ -192,6 +190,8 @@ Create plots displaying the distribution of lobster **counts**:
 3) grouped by year
 
 ```{r}
+#|
+
 # ---- Grouped by reef site ----
 
 # Create a violin plot of lobster counts by reef site
